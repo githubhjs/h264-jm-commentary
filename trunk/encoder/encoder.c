@@ -42,21 +42,21 @@
 //#define DEBUG_BENCHMARK
 
 #ifdef DEBUG_BENCHMARK
-static int64_t i_mtime_encode_frame = 0;
-static int64_t i_mtime_analyse = 0;
-static int64_t i_mtime_encode = 0;
-static int64_t i_mtime_write = 0;
-static int64_t i_mtime_filter = 0;
-#define TIMER_START( d ) \
+	static int64_t i_mtime_encode_frame = 0;
+	static int64_t i_mtime_analyse = 0;
+	static int64_t i_mtime_encode = 0;
+	static int64_t i_mtime_write = 0;
+	static int64_t i_mtime_filter = 0;
+	#define TIMER_START( d ) \
     { \
         int64_t d##start = x264_mdate();
 
-#define TIMER_STOP( d ) \
+		#define TIMER_STOP( d ) \
         d += x264_mdate() - d##start;\
     }
 #else
-#define TIMER_START( d )
-#define TIMER_STOP( d )
+	#define TIMER_START( d )
+	#define TIMER_STOP( d )
 #endif
 
 #define NALU_OVERHEAD 5 // startcode + NAL type costs 5 bytes per frame
@@ -98,7 +98,7 @@ static void x264_frame_dump( x264_t *h, x264_frame_t *fr, char *name )
 #endif
 
 
-/* Fill "default" values */
+/* 填充默认值 ，初始化 Fill "default" values */
 static void x264_slice_header_init( x264_t *h, x264_slice_header_t *sh,
                                     x264_sps_t *sps, x264_pps_t *pps,
                                     int i_type, int i_idr_pic_id, int i_frame, int i_qp )
@@ -106,7 +106,7 @@ static void x264_slice_header_init( x264_t *h, x264_slice_header_t *sh,
     x264_param_t *param = &h->param;
     int i;
 
-    /* First we fill all field */
+    /* 一开始我们填充所有字段 First we fill all field */
     sh->sps = sps;
     sh->pps = pps;
 
@@ -184,6 +184,10 @@ static void x264_slice_header_init( x264_t *h, x264_slice_header_t *sh,
     sh->i_beta_offset = param->i_deblocking_filter_beta << 1;
 }
 
+/*
+ 
+   
+*/
 static void x264_slice_header_write( bs_t *s, x264_slice_header_t *sh, int i_nal_ref_idc )
 {
     int i;
@@ -237,7 +241,7 @@ static void x264_slice_header_write( bs_t *s, x264_slice_header_t *sh, int i_nal
         }
     }
 
-    /* ref pic list reordering */
+    /* 引用图像列表重排序 ref pic list reordering */
     if( sh->i_type != SLICE_TYPE_I )
     {
         bs_write1( s, sh->b_ref_pic_list_reordering_l0 );
@@ -269,7 +273,7 @@ static void x264_slice_header_write( bs_t *s, x264_slice_header_t *sh, int i_nal
     if( ( sh->pps->b_weighted_pred && ( sh->i_type == SLICE_TYPE_P || sh->i_type == SLICE_TYPE_SP ) ) ||
         ( sh->pps->b_weighted_bipred == 1 && sh->i_type == SLICE_TYPE_B ) )
     {
-        /* FIXME */
+        /* FIXME 修理自我*/
     }
 
     if( i_nal_ref_idc != 0 )
@@ -305,12 +309,12 @@ static void x264_slice_header_write( bs_t *s, x264_slice_header_t *sh, int i_nal
 /****************************************************************************
  *
  ****************************************************************************
- ****************************** External API*********************************
+ ****************************** External(外界的) API*************************
  ****************************************************************************
  *
  ****************************************************************************/
 
-static int x264_validate_parameters( x264_t *h )
+static int x264_validate_parameters( x264_t *h )//检查结构体是否有效并试图校正错误
 {
     if( h->param.i_width <= 0 || h->param.i_height <= 0 )
     {
@@ -464,68 +468,69 @@ static int x264_validate_parameters( x264_t *h )
 
 /****************************************************************************
  * x264_encoder_open:
+ * 创建x264编码器并读入所有编码器参数。这个函数是对不正确的参数进行修改,并对各结构体参数和cabac 编码,预测等需要的参数进行初始化
  ****************************************************************************/
 x264_t *x264_encoder_open   ( x264_param_t *param )
 {
-    x264_t *h = x264_malloc( sizeof( x264_t ) );
+    x264_t *h = x264_malloc( sizeof( x264_t ) );	/* 分配空间并进行初始化,x264_malloc( )在common.c中 */
     int i;
 
-    memset( h, 0, sizeof( x264_t ) );
+    memset( h, 0, sizeof( x264_t ) );	/* 初始化动态分配的内存空间 */
 
-    /* Create a copy of param */
-    memcpy( &h->param, param, sizeof( x264_param_t ) );
+    /* 建立一个参数的拷贝 Create a copy of param */
+    memcpy( &h->param, param, sizeof( x264_param_t ) );	/* 把传进来的参数拷贝一份到动态分配的内存里 */
 
-    if( x264_validate_parameters( h ) < 0 )
+    if( x264_validate_parameters( h ) < 0 )	/* 函数x264_validate_parameters( h )在encoder.c中,功能为判断参数是否有效，并对不合适的参数进行修改 */
     {
-        x264_free( h );
+        x264_free( h );	/*  */
         return NULL;
-    }
+    }//validate:确认,使有效
 
-    if( h->param.psz_cqm_file )
-        if( x264_cqm_parse_file( h, h->param.psz_cqm_file ) < 0 )
+    if( h->param.psz_cqm_file )	/*  */
+        if( x264_cqm_parse_file( h, h->param.psz_cqm_file ) < 0 )	/*  */
         {
             x264_free( h );
             return NULL;
         }
 
-    if( h->param.rc.psz_stat_out )
-        h->param.rc.psz_stat_out = strdup( h->param.rc.psz_stat_out );
-    if( h->param.rc.psz_stat_in )
-        h->param.rc.psz_stat_in = strdup( h->param.rc.psz_stat_in );
-    if( h->param.rc.psz_rc_eq )
-        h->param.rc.psz_rc_eq = strdup( h->param.rc.psz_rc_eq );
+    if( h->param.rc.psz_stat_out )	/*  */
+        h->param.rc.psz_stat_out = strdup( h->param.rc.psz_stat_out );	/*  */
+    if( h->param.rc.psz_stat_in )	/*  */
+        h->param.rc.psz_stat_in = strdup( h->param.rc.psz_stat_in );	/*  */
+    if( h->param.rc.psz_rc_eq )	/*  */
+        h->param.rc.psz_rc_eq = strdup( h->param.rc.psz_rc_eq );	/*  */
 
     /* VUI */
-    if( h->param.vui.i_sar_width > 0 && h->param.vui.i_sar_height > 0 )
+    if( h->param.vui.i_sar_width > 0 && h->param.vui.i_sar_height > 0 )	/*  */
     {
-        int i_w = param->vui.i_sar_width;
+        int i_w = param->vui.i_sar_width;	/*  */
         int i_h = param->vui.i_sar_height;
 
-        x264_reduce_fraction( &i_w, &i_h );
+        x264_reduce_fraction( &i_w, &i_h );	/*  */
 
-        while( i_w > 65535 || i_h > 65535 )
+        while( i_w > 65535 || i_h > 65535 ) /*  */
         {
-            i_w /= 2;
-            i_h /= 2;
+            i_w /= 2; /*  */
+            i_h /= 2; /*  */
         }
 
-        h->param.vui.i_sar_width = 0;
-        h->param.vui.i_sar_height = 0;
-        if( i_w == 0 || i_h == 0 )
+        h->param.vui.i_sar_width = 0; /*  */
+        h->param.vui.i_sar_height = 0; /*  */
+        if( i_w == 0 || i_h == 0 ) /*  */
         {
-            x264_log( h, X264_LOG_WARNING, "cannot create valid sample aspect ratio\n" );
+            x264_log( h, X264_LOG_WARNING, "cannot create valid sample aspect ratio\n" );	/*  */
         }
         else
         {
-            x264_log( h, X264_LOG_INFO, "using SAR=%d/%d\n", i_w, i_h );
-            h->param.vui.i_sar_width = i_w;
-            h->param.vui.i_sar_height = i_h;
+            x264_log( h, X264_LOG_INFO, "using SAR=%d/%d\n", i_w, i_h );	/*  */
+            h->param.vui.i_sar_width = i_w; /*  */
+            h->param.vui.i_sar_height = i_h; /*  */
         }
     }
 
-    x264_reduce_fraction( &h->param.i_fps_num, &h->param.i_fps_den );
+    x264_reduce_fraction( &h->param.i_fps_num, &h->param.i_fps_den );	/*  */
 
-    /* Init x264_t */
+    /* 初始化x264_t结构体  Init x264_t */
     h->out.i_nal = 0;
     h->out.i_bitstream = X264_MAX( 1000000, h->param.i_width * h->param.i_height * 1.7
         * ( h->param.rc.i_rc_method == X264_RC_ABR ? pow( 0.5, h->param.rc.i_qp_min )
@@ -548,7 +553,7 @@ x264_t *x264_encoder_open   ( x264_param_t *param )
     
     h->mb.i_mb_count = h->sps->i_mb_width * h->sps->i_mb_height;
 
-    /* Init frames. */
+    /* 初始化帧 Init frames. */
     h->frames.i_delay = h->param.i_bframe;
     h->frames.i_max_ref0 = h->param.i_frame_reference;
     h->frames.i_max_ref1 = h->sps->vui.i_num_reorder_frames;
@@ -588,26 +593,26 @@ x264_t *x264_encoder_open   ( x264_param_t *param )
 
     if( x264_macroblock_cache_init( h ) < 0 )
         return NULL;
-    x264_rdo_init( );
+    x264_rdo_init( );	/*  */
 
     /* init CPU functions */
-    x264_predict_16x16_init( h->param.cpu, h->predict_16x16 );
-    x264_predict_8x8c_init( h->param.cpu, h->predict_8x8c );
-    x264_predict_8x8_init( h->param.cpu, h->predict_8x8 );
-    x264_predict_4x4_init( h->param.cpu, h->predict_4x4 );
+    x264_predict_16x16_init( h->param.cpu, h->predict_16x16 );	/*  */
+    x264_predict_8x8c_init( h->param.cpu, h->predict_8x8c );	/*  */
+    x264_predict_8x8_init( h->param.cpu, h->predict_8x8 );		/*  */
+    x264_predict_4x4_init( h->param.cpu, h->predict_4x4 );		/*  */
 
-    x264_pixel_init( h->param.cpu, &h->pixf );
-    x264_dct_init( h->param.cpu, &h->dctf );
-    x264_mc_init( h->param.cpu, &h->mc );
-    x264_csp_init( h->param.cpu, h->param.i_csp, &h->csp );
-    x264_quant_init( h, h->param.cpu, &h->quantf );
-    x264_deblock_init( h->param.cpu, &h->loopf );
+    x264_pixel_init( h->param.cpu, &h->pixf );		/*  */
+    x264_dct_init( h->param.cpu, &h->dctf );		/*  */
+    x264_mc_init( h->param.cpu, &h->mc );			/*  */
+    x264_csp_init( h->param.cpu, h->param.i_csp, &h->csp );	/*  */
+    x264_quant_init( h, h->param.cpu, &h->quantf );			/*  */
+    x264_deblock_init( h->param.cpu, &h->loopf );			/*  */
 
     memcpy( h->pixf.mbcmp,
             ( h->mb.b_lossless || h->param.analyse.i_subpel_refine <= 1 ) ? h->pixf.sad : h->pixf.satd,
-            sizeof(h->pixf.mbcmp) );
+            sizeof(h->pixf.mbcmp) );	/*  */
 
-    /* rate control */
+    /* 速度控制 rate control */
     if( x264_ratecontrol_new( h ) < 0 )
         return NULL;
 
@@ -624,9 +629,9 @@ x264_t *x264_encoder_open   ( x264_param_t *param )
     for( i = 1; i < h->param.i_threads; i++ )
         h->thread[i] = x264_malloc( sizeof(x264_t) );
 
-#ifdef DEBUG_DUMP_FRAME
+#ifdef DEBUG_DUMP_FRAME		//DUMP:转储,倾倒
     {
-        /* create or truncate the reconstructed video file */
+        /* create or truncate(截短) the reconstructed(重建的) video file */
         FILE *f = fopen( "fdec.yuv", "w" );
         if( f )
             fclose( f );
@@ -739,14 +744,16 @@ static void x264_frame_push( x264_frame_t *list[X264_BFRAME_MAX], x264_frame_t *
     list[0] = frame;
 }
 
-static x264_frame_t *x264_frame_get( x264_frame_t *list[X264_BFRAME_MAX+1] )
+static x264_frame_t *x264_frame_get( x264_frame_t *list[X264_BFRAME_MAX+1] )//#define X264_BFRAME_MAX 16
 {
-    x264_frame_t *frame = list[0];
+    x264_frame_t *frame = list[0];	/* 取链表里取第0个元素，就是第0帧 */
     int i;
-    for( i = 0; list[i]; i++ )
+    for( i = 0; list[i]; i++ )//for(i = 0 ; list[0]; i++)//感觉是先取出第0帧，然后其它帧往前移一下
         list[i] = list[i+1];
     return frame;
 }
+
+
 
 static void x264_frame_sort( x264_frame_t *list[X264_BFRAME_MAX+1], int b_dts )
 {
@@ -852,6 +859,10 @@ static inline void x264_fdec_deblock( x264_t *h )
     }
 }
 
+/*
+x264_reference_update:这个函数里最主要的工作的是将上一个参考帧放入参考帧队列，并从空闲帧队列中取出一帧作为当前的参考工作帧（即解码操作的目的帧），即h->fdec。
+它会在h->frames.reference 保留需要的参考帧，然后根据参考帧队列的大小限制，移除不使用的参考帧
+*/
 static inline void x264_reference_update( x264_t *h )
 {
     int i;
@@ -888,7 +899,7 @@ static inline void x264_reference_reset( x264_t *h )
 {
     int i;
 
-    /* reset ref pictures */
+    /* 重设引用 reset ref pictures */
     for( i = 1; i < h->frames.i_max_dpb; i++ )
     {
         h->frames.reference[i]->i_poc = -1;
@@ -1122,7 +1133,7 @@ static inline int x264_slices_write( x264_t *h )
         }
         x264_ratecontrol_threads_start( h );
 
-        /* dispatch */
+        /* dispatch派遣调度 */
 #ifdef HAVE_PTHREAD
         {
             pthread_t handles[X264_SLICE_MAX];
@@ -1136,7 +1147,7 @@ static inline int x264_slices_write( x264_t *h )
             x264_slice_write( h->thread[i] );
 #endif
 
-        /* merge contexts */
+        /* merge合并 contexts */
         i_frame_size = h->out.nal[i_nal].i_payload;
         for( i = 1; i < h->param.i_threads; i++ )
         {
@@ -1164,6 +1175,10 @@ static inline int x264_slices_write( x264_t *h )
 
 /****************************************************************************
  * x264_encoder_encode:
+ 把picture复制成一个frame
+ x264_encoder_encode每次会以参数送入一帧待编码的帧pic_in，函数首先会从空闲队列中
+ 取出一帧用于承载该新帧，而它的i_frame被设定为播放顺序计数，如：fenc->i_frame = h->frames.i_input++。 
+ x264_encoder_encode在根据上述判据确定B帧缓冲充满的情况下才进行后续编码工作
  *  XXX: i_poc   : is the poc of the current given picture
  *       i_frame : is the number of the frame being coded
  *  ex:  type frame poc
@@ -1197,24 +1212,24 @@ int     x264_encoder_encode( x264_t *h,
     *pp_nal = NULL;
 
 
-    /* ------------------- Setup new frame from picture -------------------- */
-    TIMER_START( i_mtime_encode_frame );
-    if( pic_in != NULL )
+    /* -------------------主要是将图片的原始数据赋值给一个未使用的帧，用于编码 Setup new frame from picture -------------------- */
+    TIMER_START( i_mtime_encode_frame );//取开始时间，是一个define;#define TIMER_START( d ) {int64_t d##start = x264_mdate();#define TIMER_STOP( d ) d += x264_mdate() - d##start;}
+    if( pic_in != NULL )//输入的原始图像不为空
     {
-        /* 1: Copy the picture to a frame and move it to a buffer */
-        x264_frame_t *fenc = x264_frame_get( h->frames.unused );
-
+        /* 1: Copy the picture to a frame and move it to a buffer 拷贝图片到一个帧并且移动它到一个缓冲区*/
+        x264_frame_t *fenc = x264_frame_get( h->frames.unused );//frames是x264_t结构体里定义的另一个结构体，frames结构体里有一个字段是x264_frame_t *unused[X264_BFRAME_MAX+3];其中X264_BFRAME_MAX=16
+																//x264_frame_get的参数是x264_frame_t *list[X264_BFRAME_MAX+1]，而这个unused就是这种类型
         x264_frame_copy_picture( h, fenc, pic_in );
 
         if( h->param.i_width % 16 || h->param.i_height % 16 )
-            x264_frame_expand_border_mod16( h, fenc );
+            x264_frame_expand_border_mod16( h, fenc );//将长和宽扩展为16的倍数
 
         fenc->i_frame = h->frames.i_input++;
 
         x264_frame_put( h->frames.next, fenc );
 
         if( h->frames.b_have_lowres )
-            x264_frame_init_lowres( h->param.cpu, fenc );
+            x264_frame_init_lowres( h->param.cpu, fenc );//视频:http://www.powercam.cc/slide/8377
 
         if( h->frames.i_input <= h->frames.i_delay )
         {
@@ -1232,7 +1247,7 @@ int     x264_encoder_encode( x264_t *h,
         if( h->frames.next[0] == NULL )
             return 0;
 
-        x264_slicetype_decide( h );
+        x264_slicetype_decide( h );//这个函数确定当前条带（帧）的类型
 
         /* 3: move some B-frames and 1 non-B to encode queue */
         while( IS_X264_TYPE_B( h->frames.next[bframes]->i_type ) )

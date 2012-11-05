@@ -44,63 +44,84 @@
 #endif
 
 typedef struct {
-    FILE *fh;
-    int width, height;
-    int next_frame;
+    FILE *fh;			//输入文件的文件指针
+    int width, height;	//宽和高，应该是指视频画面的尺寸
+    int next_frame;		//下一帧
 } yuv_input_t;
 
-/* raw 420 yuv file operation */
+/* 
+raw 420 yuv file operation(操作) 
+打开一个文件，已经文件路径
+*/
 int open_file_yuv( char *psz_filename, hnd_t *p_handle, x264_param_t *p_param )
 {
-    yuv_input_t *h = malloc(sizeof(yuv_input_t));
-    h->width = p_param->i_width;
+    yuv_input_t *h = malloc(sizeof(yuv_input_t));//申请一块内存给yuv_input_t结构体用，内存地址存到h
+	/*对结构体字段赋值*/
+	h->width = p_param->i_width;
     h->height = p_param->i_height;
     h->next_frame = 0;
 
     if( !strcmp(psz_filename, "-") )
-        h->fh = stdin;
+        h->fh = stdin;//这句应该是代表文件已经打开，这儿只需接收这个句柄/地址
     else
-        h->fh = fopen(psz_filename, "rb");
-    if( h->fh == NULL )
+        h->fh = fopen(psz_filename, "rb");/* 打开一个文件 文件顺利打开后，指向该流的文件指针就会被返回。如果文件打开失败则返回NULL，并把错误代码存在errno 中 */
+											//rb 以只读方式打开文件，该文件必须存在,加入b 字符用来告诉函数库打开的文件为二进制文件，而非纯文字文件
+    if( h->fh == NULL )//文件打开失败
         return -1;
 
-    *p_handle = (hnd_t)h;
+    *p_handle = (hnd_t)h;//把此处打开的文件的指针传出去，左边的p_handle在调本函数时以参数方式提供过来
     return 0;
 }
 
+/*
+得到帧的总数
+
+这儿传的参数，就是上面open_file_yuv结束前传出的那个文件指针
+这儿通过文件的总长度/每帧尺寸来计算得到总帧数，可以看到，文件必须是yuv420的，如果是其它格式或者包含音频的，是不能用此函数计算的
+*/
 int get_frame_total_yuv( hnd_t handle )
 {
     yuv_input_t *h = handle;
     int i_frame_total = 0;
 
-    if( !fseek( h->fh, 0, SEEK_END ) )
+    if( !fseek( h->fh, 0, SEEK_END ) )//重定位流(数据流/文件)上的文件内部位置指针;函数设置文件指针stream的位置。如果执行成功，stream将指向以fromwhere（偏移起始位置：文件头0，当前位置1，文件尾2）为基准，偏移offset（指针偏移量）个字节的位置。如果执行失败(比如offset超过文件自身大小)，则不改变stream指向的位置。
     {
-        uint64_t i_size = ftell( h->fh );
-        fseek( h->fh, 0, SEEK_SET );
-        i_frame_total = (int)(i_size / ( h->width * h->height * 3 / 2 ));
+        uint64_t i_size = ftell( h->fh );//函数 ftell() 用于得到文件位置指针当前位置相对于文件首的偏移字节数。在随机方式存取文件时，由于文件位置频繁的前后移动，程序不容易确定文件的当前位置。调用函数ftell()就能非常容易地确定文件的当前位置
+        fseek( h->fh, 0, SEEK_SET );//重定位流(数据流/文件)上的文件内部位置指针,注意：不是定位文件指针，文件指针指向文件/流。位置指针指向文件内部的字节位置，随着文件的读取会移动，文件指针如果不重新赋值将不会改变指向别的文件
+									//其中fseek中第一个参数为文件指针，第二个参数为偏移量，起始位置，SEEK_END 表示文件尾，SEEK_SET 表示文件头。
+        i_frame_total = (int)(i_size / ( h->width * h->height * 3 / 2 ));//计算总的帧数, 这里乘以1.5是因为一个编码单位是一个亮度块加2个色度块，大小上等于1.5个亮度块
     }
 
     return i_frame_total;
 }
 
+/*
+读取帧，yuv格式的
+
+这里支持的yuv存储格式为:先存一帧的全部亮度值，再存一帧的全部Cb值，再存一帧的全部Cr值，下一帧也是如此；其它存储方式，这儿不支持
+*/
 int read_frame_yuv( x264_picture_t *p_pic, hnd_t handle, int i_frame )
 {
     yuv_input_t *h = handle;
 
     if( i_frame != h->next_frame )
-        if( fseek( h->fh, (uint64_t)i_frame * h->width * h->height * 3 / 2, SEEK_SET ) )
+        if( fseek( h->fh, (uint64_t)i_frame * h->width * h->height * 3 / 2, SEEK_SET ) )//定位文件
             return -1;
 
-    if( fread( p_pic->img.plane[0], 1, h->width * h->height, h->fh ) <= 0
-            || fread( p_pic->img.plane[1], 1, h->width * h->height / 4, h->fh ) <= 0
-            || fread( p_pic->img.plane[2], 1, h->width * h->height / 4, h->fh ) <= 0 )
+    if( fread( p_pic->img.plane[0], 1, h->width * h->height, h->fh ) <= 0	//fread:从一个流中读数据//读Y亮度
+            || fread( p_pic->img.plane[1], 1, h->width * h->height / 4, h->fh ) <= 0//读Cb
+            || fread( p_pic->img.plane[2], 1, h->width * h->height / 4, h->fh ) <= 0 )//读Cr
         return -1;
 
-    h->next_frame = i_frame+1;
+    h->next_frame = i_frame+1;//记住下一帧是第几帧，存到了yuv_input_t结构的最后一个字段里
 
     return 0;
 }
 
+/*
+
+关闭YUV文件
+*/
 int close_file_yuv(hnd_t handle)
 {
     yuv_input_t *h = handle;
@@ -109,13 +130,13 @@ int close_file_yuv(hnd_t handle)
     return fclose(h->fh);
 }
 
-/* YUV4MPEG2 raw 420 yuv file operation */
+/* YUV4MPEG2 raw(原始的) 420 yuv file operation */
 typedef struct {
-    FILE *fh;
-    int width, height;
-    int next_frame;
+    FILE *fh;//文件指针，用来保存一个已打开的文件的指针
+    int width, height;//宽、高
+    int next_frame;//下一帧，计数用
     int seq_header_len, frame_header_len;
-    int frame_size;
+    int frame_size;//帧尺寸
 } y4m_input_t;
 
 #define Y4M_MAGIC "YUV4MPEG2"
@@ -508,10 +529,15 @@ int close_file_thread( hnd_t handle )
 }
 #endif
 
-
+/*
+功能：打开文件
+方式：w+ 
+说明：加入b 字符用来告诉函数库打开的文件为二进制文件，而非纯文字文件
+注意：打开可读写文件，若文件存在则文件长度清为零，即该文件内容会消失。若文件不存在则建立该文件w+ 打开可读写文件，若文件存在则文件长度清为零，即该文件内容会消失。若文件不存在则建立该文件
+*/
 int open_file_bsf( char *psz_filename, hnd_t *p_handle )
 {
-    if ((*p_handle = fopen(psz_filename, "w+b")) == NULL)
+    if ((*p_handle = fopen(psz_filename, "w+b")) == NULL)//+ 打开可读写文件，若文件存在则文件长度清为零，即该文件内容会消失。若文件不存在则建立该文件。上述的形态字符串都可以再加一个b字符，如rb、w+b或ab＋等组合，加入b 字符用来告诉函数库打开的文件为二进制文件，而非纯文字文件。
         return -1;
 
     return 0;
@@ -781,17 +807,20 @@ typedef struct
     mk_Writer *w;
 
     uint8_t   *sps, *pps;
-    int       sps_len, pps_len;
+    int       sps_len, pps_len;//序列参数集和图像参数集的长度
 
     int       width, height, d_width, d_height;
 
-    int64_t   frame_duration;
+    int64_t   frame_duration;//uration:持续的时间
     int       fps_num;
 
     int       b_header_written;
     char      b_writing_frame;
 } mkv_t;
 
+/*
+写头部
+*/
 int write_header_mkv( mkv_t *p_mkv )
 {
     int       ret;
@@ -844,24 +873,27 @@ int open_file_mkv( char *psz_filename, hnd_t *p_handle )
 
     *p_handle = NULL;
 
-    p_mkv  = malloc(sizeof(*p_mkv));
-    if (p_mkv == NULL)
+    p_mkv  = malloc(sizeof(*p_mkv));//动态内存申请，用于结构体mkv_t
+    if (p_mkv == NULL)//内存申请失败退出
         return -1;
 
-    memset(p_mkv, 0, sizeof(*p_mkv));
+    memset(p_mkv, 0, sizeof(*p_mkv));//初始化为00000...
 
-    p_mkv->w = mk_createWriter(psz_filename);
+    p_mkv->w = mk_createWriter(psz_filename);//它内部有一句w->fp = fopen(filename, "wb");，实际完成了文件以写入方式打开的动作
     if (p_mkv->w == NULL)
     {
-        free(p_mkv);
+        free(p_mkv);//失败的话，才释放动态申请的内存
         return -1;
     }
 
-    *p_handle = p_mkv;
+    *p_handle = p_mkv;//把mkv_t结构体对象的指针传出去，供其它函数用
 
     return 0;
 }
 
+/*
+设置mkv参数，针对的是x264_param_t
+*/
 int set_param_mkv( hnd_t handle, x264_param_t *p_param )
 {
     mkv_t   *p_mkv = handle;
@@ -916,17 +948,21 @@ int set_param_mkv( hnd_t handle, x264_param_t *p_param )
     return 0;
 }
 
+/*
+写NAL单元
+把Nal写入到一个文件
+*/
 int write_nalu_mkv( hnd_t handle, uint8_t *p_nalu, int i_size )
 {
     mkv_t *p_mkv = handle;
-    uint8_t type = p_nalu[4] & 0x1f;
+    uint8_t type = p_nalu[4] & 0x1f;//typedef unsigned char   uint8_t;
     uint8_t dsize[4];
     int psize;
 
     switch( type )
     {
-    // sps
-    case 0x07:
+    // sps//SPS(序列参数集)
+    case 0x07:		//[毕厚杰：Page159 nal_uint_type语义表] nal_uint_type=7，是序列参数集
         if( !p_mkv->sps )
         {
             p_mkv->sps = malloc(i_size - 4);
@@ -937,8 +973,8 @@ int write_nalu_mkv( hnd_t handle, uint8_t *p_nalu, int i_size )
         }
         break;
 
-    // pps
-    case 0x08:
+    // pps//PPS(图像参数集)
+    case 0x08:		//[毕厚杰：Page159 nal_uint_type语义表] nal_uint_type=8，是图像参数集
         if( !p_mkv->pps )
         {
             p_mkv->pps = malloc(i_size - 4);
@@ -950,9 +986,9 @@ int write_nalu_mkv( hnd_t handle, uint8_t *p_nalu, int i_size )
         break;
 
     // slice, sei
-    case 0x1:
-    case 0x5:
-    case 0x6:
+    case 0x1:	//[毕厚杰：Page159 nal_uint_type语义表] nal_uint_type=1，是不分区，非IDR图像的片
+    case 0x5:	//[毕厚杰：Page159 nal_uint_type语义表] nal_uint_type=5，是IDR图像中的片
+    case 0x6:	//[毕厚杰：Page159 nal_uint_type语义表] nal_uint_type=5，是补充增强信息单元(SEI)
         if( !p_mkv->b_writing_frame )
         {
             if( mk_startFrame(p_mkv->w) < 0 )
@@ -991,6 +1027,9 @@ int set_eop_mkv( hnd_t handle, x264_picture_t *p_picture )
                              p_picture->i_type == X264_TYPE_IDR );
 }
 
+/*
+关闭mkv文件
+*/
 int close_file_mkv( hnd_t handle )
 {
     mkv_t *p_mkv = handle;

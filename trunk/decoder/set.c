@@ -141,7 +141,7 @@ int x264_sps_read( bs_t *s, x264_sps_t sps_array[32] )
 
     if( bs_eof( s ) )
     {
-        /* no rbsp trailing */
+        /* no rbsp trailing(мон╡) */
         fprintf( stderr, "incomplete SPS\n" );
         goto error;
     }
@@ -239,7 +239,7 @@ int x264_pps_read( bs_t *s, x264_pps_t pps_array[256] )
 
     if( bs_eof( s ) )
     {
-        /* no rbsp trailing */
+        /* no rbsp trailing(мон╡) */
         fprintf( stderr, "incomplete PPS\n" );
         goto error;
     }

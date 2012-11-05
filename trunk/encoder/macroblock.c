@@ -48,7 +48,7 @@ static const int def_quant4_mf[6][4][4] =
 };
 
 /****************************************************************************
- * Scan and Quant functions
+ * Scan and Quant(´¬½°) functions Zig-zagÉ¨Ãè
  ****************************************************************************/
 
 #define ZIG(i,y,x) level[i] = dct[x][y];
@@ -107,7 +107,7 @@ static inline void sub_zigzag_4x4full( int level[16], const uint8_t *p_src, uint
     ZIG( 8,2,1) ZIG( 9,3,0) ZIG(10,3,1) ZIG(11,2,2)
     ZIG(12,1,3) ZIG(13,2,3) ZIG(14,3,2) ZIG(15,3,3)
 }
-static inline void sub_zigzag_4x4( int level[15], const uint8_t *p_src, uint8_t *p_dst )
+static inline void sub_zigzag_4x4( int level[15], const uint8_t *p_src, uint8_t *p_dst )/* zigzagÉ¨Ãè£¬±Ïµç×Ó°æ256Ò³ */
 {
                 ZIG( 0,0,1) ZIG( 1,1,0) ZIG( 2,2,0)
     ZIG( 3,1,1) ZIG( 4,0,2) ZIG( 5,0,3) ZIG( 6,1,2)
@@ -188,7 +188,9 @@ static int x264_mb_decimate_score( int *dct, int i_max )
 
     return i_score;
 }
-
+/*
+ºê¿é±àÂëi¿é£¿
+*/
 void x264_mb_encode_i4x4( x264_t *h, int idx, int i_qscale )
 {
     int x = 4 * block_idx_x[idx];
@@ -216,7 +218,9 @@ void x264_mb_encode_i4x4( x264_t *h, int idx, int i_qscale )
     /* output samples to fdec */
     h->dctf.add4x4_idct( p_dst, dct4x4 );
 }
-
+/*
+ºê¿é±àÂëi¿é£¿
+*/
 void x264_mb_encode_i8x8( x264_t *h, int idx, int i_qscale )
 {
     int x = 8 * (idx&1);
@@ -237,6 +241,9 @@ void x264_mb_encode_i8x8( x264_t *h, int idx, int i_qscale )
     h->dctf.add8x8_idct8( p_dst, dct8x8 );
 }
 
+/*
+ºê¿é±àÂëi¿é£¿
+*/
 static void x264_mb_encode_i16x16( x264_t *h, int i_qscale )
 {
     uint8_t  *p_src = h->mb.pic.p_fenc[0];
@@ -293,7 +300,10 @@ static void x264_mb_encode_i16x16( x264_t *h, int i_qscale )
     /* put pixels to fdec */
     h->dctf.add16x16_idct( p_dst, &dct4x4[1] );
 }
+/*
+chroma£ºÉ«¶È
 
+*/
 static void x264_mb_encode_8x8_chroma( x264_t *h, int b_inter, int i_qscale )
 {
     int i, ch;
@@ -410,7 +420,7 @@ void x264_macroblock_encode_pskip( x264_t *h )
 }
 
 /*****************************************************************************
- * x264_macroblock_encode:
+ * x264_macroblock_encode:ºê¿é±àÂë
  *****************************************************************************/
 void x264_macroblock_encode( x264_t *h )
 {
@@ -440,7 +450,7 @@ void x264_macroblock_encode( x264_t *h )
         /* do the right prediction */
         h->predict_16x16[i_mode]( h->mb.pic.p_fdec[0] );
 
-        /* encode the 16x16 macroblock */
+        /*±àÂë16*16ºê¿é encode the 16x16 macroblock */
         x264_mb_encode_i16x16( h, i_qp );
     }
     else if( h->mb.i_type == I_8x8 )
@@ -466,7 +476,7 @@ void x264_macroblock_encode( x264_t *h )
             int      i_mode = h->mb.cache.intra4x4_pred_mode[x264_scan8[i]];
 
             if( (h->mb.i_neighbour4[i] & (MB_TOPRIGHT|MB_TOP)) == MB_TOP )
-                /* emulate missing topright samples */
+                /* emulate(·ÂÕæ£¬Ä£·Â) missing(È±µôµÄ) topright(ÓÒÉÏ·½) samples(Ñù±¾) */
                 *(uint32_t*) &p_dst[4-FDEC_STRIDE] = p_dst[3-FDEC_STRIDE] * 0x01010101U;
 
             h->predict_4x4[i_mode]( p_dst );
@@ -478,7 +488,7 @@ void x264_macroblock_encode( x264_t *h )
         int i8x8, i4x4, idx;
         int i_decimate_mb = 0;
 
-        /* Motion compensation */
+        /* Motion(ÔË¶¯) compensation(²¹³¥) */
         x264_mb_mc( h );
 
         if( h->mb.b_lossless )
@@ -547,7 +557,7 @@ void x264_macroblock_encode( x264_t *h )
             {
                 int i_decimate_8x8;
 
-                /* encode one 4x4 block */
+                /* ±àÂë4*4¿é encode one 4x4 block */
                 i_decimate_8x8 = 0;
                 for( i4x4 = 0; i4x4 < 4; i4x4++ )
                 {
@@ -566,7 +576,7 @@ void x264_macroblock_encode( x264_t *h )
                         i_decimate_8x8 += x264_mb_decimate_score( h->dct.block[idx].luma4x4, 16 );
                 }
 
-                /* decimate this 8x8 block */
+                /* decimate(»Ùµô´ó²¿·Ö,³ÉÅúÉ±ËÀ) this 8x8 block */
                 i_decimate_mb += i_decimate_8x8;
                 if( i_decimate_8x8 < 4 && b_decimate )
                 {
@@ -591,7 +601,7 @@ void x264_macroblock_encode( x264_t *h )
         }
     }
 
-    /* encode chroma */
+    /* encode chroma(É«¶È) */
     i_qp = i_chroma_qp_table[x264_clip3( i_qp + h->pps->i_chroma_qp_index_offset, 0, 51 )];
     if( IS_INTRA( h->mb.i_type ) )
     {
@@ -600,7 +610,7 @@ void x264_macroblock_encode( x264_t *h )
         h->predict_8x8c[i_mode]( h->mb.pic.p_fdec[2] );
     }
 
-    /* encode the 8x8 blocks */
+    /* ±àÂë8*8¿é encode the 8x8 blocks */
     x264_mb_encode_8x8_chroma( h, !IS_INTRA( h->mb.i_type ), i_qp );
 
     /* Calculate the Luma/Chroma patern and non_zero_count */
@@ -821,7 +831,8 @@ void x264_noise_reduction_update( x264_t *h )
     }
 }
 
-void x264_denoise_dct( x264_t *h, int16_t *dct )
+//
+void x264_denoise_dct( x264_t *h, int16_t *dct )//denoise:½µÔë,Ïû³ý¸ÉÈÅ
 {
     const int cat = h->mb.b_transform_8x8;
     int i;
@@ -854,7 +865,7 @@ void x264_denoise_dct( x264_t *h, int16_t *dct )
 
 /*****************************************************************************
  * RD only; 4 calls to this do not make up for one macroblock_encode.
- * doesn't transform chroma dc.
+ * doesn't transform(±ä»») chroma(É«¶È) dc.
  *****************************************************************************/
 void x264_macroblock_encode_p8x8( x264_t *h, int i8 )
 {

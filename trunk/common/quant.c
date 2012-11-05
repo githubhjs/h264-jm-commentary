@@ -34,6 +34,9 @@
         (coef) = - ( ( f - (coef) * (mf) ) >> i_qbits ); \
 }
 
+/*
+8*8 AC量化
+*/
 static void quant_8x8_core( int16_t dct[8][8], int quant_mf[8][8], int i_qbits, int f )
 {
     int i;
@@ -41,6 +44,9 @@ static void quant_8x8_core( int16_t dct[8][8], int quant_mf[8][8], int i_qbits, 
         QUANT_ONE( dct[0][i], quant_mf[0][i] );
 }
 
+/*
+4*4 AC量化
+*/
 static void quant_4x4_core( int16_t dct[4][4], int quant_mf[4][4], int i_qbits, int f )
 {
     int i;
@@ -48,6 +54,9 @@ static void quant_4x4_core( int16_t dct[4][4], int quant_mf[4][4], int i_qbits, 
         QUANT_ONE( dct[0][i], quant_mf[0][i] );
 }
 
+/*
+4*4 亮度DC量化
+*/
 static void quant_4x4_dc_core( int16_t dct[4][4], int i_quant_mf, int i_qbits, int f )
 {
     int i;
@@ -55,6 +64,9 @@ static void quant_4x4_dc_core( int16_t dct[4][4], int i_quant_mf, int i_qbits, i
         QUANT_ONE( dct[0][i], i_quant_mf );
 }
 
+/*
+2*2 色度DC量化
+*/
 static void quant_2x2_dc_core( int16_t dct[2][2], int i_quant_mf, int i_qbits, int f )
 {
     QUANT_ONE( dct[0][0], i_quant_mf );
@@ -63,12 +75,18 @@ static void quant_2x2_dc_core( int16_t dct[2][2], int i_quant_mf, int i_qbits, i
     QUANT_ONE( dct[0][3], i_quant_mf );
 }
 
+/*
+
+*/
 #define DEQUANT_SHL( x ) \
     dct[y][x] = ( dct[y][x] * dequant_mf[i_mf][y][x] ) << i_qbits
 
 #define DEQUANT_SHR( x ) \
     dct[y][x] = ( dct[y][x] * dequant_mf[i_mf][y][x] + f ) >> (-i_qbits)
 
+/*
+4*4 AC反量化
+*/
 static void dequant_4x4( int16_t dct[4][4], int dequant_mf[6][4][4], int i_qp )
 {
     const int i_mf = i_qp%6;
@@ -98,6 +116,9 @@ static void dequant_4x4( int16_t dct[4][4], int dequant_mf[6][4][4], int i_qp )
     }
 }
 
+/*
+8*8 AC反量化
+*/
 static void dequant_8x8( int16_t dct[8][8], int dequant_mf[6][8][8], int i_qp )
 {
     const int i_mf = i_qp%6;
@@ -135,6 +156,9 @@ static void dequant_8x8( int16_t dct[8][8], int dequant_mf[6][8][8], int i_qp )
     }
 }
 
+/*
+2*2 色度DC反量化
+*/
 void x264_mb_dequant_2x2_dc( int16_t dct[2][2], int dequant_mf[6][4][4], int i_qp )
 {
     const int i_qbits = i_qp/6 - 5;
@@ -158,6 +182,9 @@ void x264_mb_dequant_2x2_dc( int16_t dct[2][2], int dequant_mf[6][4][4], int i_q
     }
 }
 
+/*
+4*4 亮度DC反量化
+*/
 void x264_mb_dequant_4x4_dc( int16_t dct[4][4], int dequant_mf[6][4][4], int i_qp )
 {
     const int i_qbits = i_qp/6 - 6;
@@ -190,6 +217,9 @@ void x264_mb_dequant_4x4_dc( int16_t dct[4][4], int dequant_mf[6][4][4], int i_q
     }
 }
 
+/*
+量化参量初始化
+*/
 void x264_quant_init( x264_t *h, int cpu, x264_quant_function_t *pf )
 {
     int i, maxQ8=0, maxQ4=0, maxQdc=0;

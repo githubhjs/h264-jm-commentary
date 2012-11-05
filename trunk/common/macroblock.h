@@ -80,7 +80,7 @@ enum mb_class_e
     B_BI_BI         = 16,
     B_8x8           = 17,
     B_SKIP          = 18,
-};
+};//[毕厚杰，纸书第二版] 172,173页，给了I、P、B片中的mb_type的三个表
 static const int x264_mb_type_fix[19] =
 {
     I_4x4, I_4x4, I_16x16, I_PCM,

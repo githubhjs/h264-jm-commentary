@@ -36,6 +36,13 @@ static const int dequant_mf[6][4][4] =
     { {18, 23, 18, 23}, {23, 29, 23, 29}, {18, 23, 18, 23}, {23, 29, 23, 29} }
 };
 
+/*
+x264_宏块_预测_帧内编码4*4_模式
+predict:预测
+intra:内部
+
+帧内4*4块模式预测
+*/
 int x264_mb_predict_intra4x4_mode( x264_t *h, int idx )
 {
     const int ma = h->mb.cache.intra4x4_pred_mode[x264_scan8[idx] - 1];
@@ -48,7 +55,10 @@ int x264_mb_predict_intra4x4_mode( x264_t *h, int idx )
 
     return m;
 }
+/*
 
+非0
+*/
 int x264_mb_predict_non_zero_code( x264_t *h, int idx )
 {
     const int za = h->mb.cache.non_zero_count[x264_scan8[idx] - 1];
@@ -63,6 +73,11 @@ int x264_mb_predict_non_zero_code( x264_t *h, int idx )
     return i_ret & 0x7f;
 }
 
+/*
+
+transform:变换
+判断当前宏块是否允许8*8变换
+*/
 int x264_mb_transform_8x8_allowed( x264_t *h )
 {
     if( IS_SKIP( h->mb.i_type ) )
@@ -83,6 +98,9 @@ int x264_mb_transform_8x8_allowed( x264_t *h )
     return 1;
 }
 
+/*
+宏块运动矢量预测
+*/
 void x264_mb_predict_mv( x264_t *h, int i_list, int idx, int i_width, int mvp[2] )
 {
     const int i8 = x264_scan8[idx];
@@ -173,6 +191,10 @@ void x264_mb_predict_mv( x264_t *h, int i_list, int idx, int i_width, int mvp[2]
     }
 }
 
+/*
+x264_宏块_预测_运动_16x16
+16*16块mv预测
+*/
 void x264_mb_predict_mv_16x16( x264_t *h, int i_list, int i_ref, int mvp[2] )
 {
     int     i_refa = h->mb.cache.ref[i_list][X264_SCAN8_0 - 1];
@@ -230,7 +252,9 @@ void x264_mb_predict_mv_16x16( x264_t *h, int i_list, int i_ref, int mvp[2] )
     }
 }
 
-
+/*
+Pskip块mv预测
+*/
 void x264_mb_predict_mv_pskip( x264_t *h, int mv[2] )
 {
     int     i_refa = h->mb.cache.ref[0][X264_SCAN8_0 - 1];
@@ -250,6 +274,9 @@ void x264_mb_predict_mv_pskip( x264_t *h, int mv[2] )
     }
 }
 
+/*
+直接模式16*16块mv时间预测
+*/
 static int x264_mb_predict_mv_direct16x16_temporal( x264_t *h )
 {
     int i_mb_4x4 = 16 * h->mb.i_mb_stride * h->mb.i_mb_y + 4 * h->mb.i_mb_x;
@@ -321,6 +348,11 @@ static int x264_mb_predict_mv_direct16x16_temporal( x264_t *h )
     return 1;
 }
 
+/*
+
+spatial:立体的，空间的
+直接模式16*16块mv 空间预测
+*/
 static int x264_mb_predict_mv_direct16x16_spatial( x264_t *h )
 {
     int ref[2];
@@ -423,6 +455,9 @@ static int x264_mb_predict_mv_direct16x16_spatial( x264_t *h )
     return 1;
 }
 
+/*
+直接模式16*16块mv预测
+*/
 int x264_mb_predict_mv_direct16x16( x264_t *h, int *b_changed )
 {
     int b_available;
@@ -469,7 +504,10 @@ int x264_mb_predict_mv_direct16x16( x264_t *h, int *b_changed )
     return b_available;
 }
 
-void x264_mb_load_mv_direct8x8( x264_t *h, int idx )
+/*
+直接模式8*8块mv加载
+*/
+void x264_mb_load_mv_direct8x8( x264_t *h, int idx )//direct:直接的
 {
     const int x = 2*(idx%2);
     const int y = 2*(idx/2);
@@ -486,6 +524,9 @@ void x264_mb_load_mv_direct8x8( x264_t *h, int idx )
 }
 
 /* This just improves encoder performance, it's not part of the spec */
+/*
+16*16参考块mv预测
+*/
 void x264_mb_predict_mv_ref16x16( x264_t *h, int i_list, int i_ref, int mvc[8][2], int *i_mvc )
 {
     int16_t (*mvr)[2] = h->mb.mvr[i_list][i_ref];
@@ -498,7 +539,7 @@ void x264_mb_predict_mv_ref16x16( x264_t *h, int i_list, int i_ref, int mvc[8][2
     }
 
     /* b_direct */
-    if( h->sh.i_type == SLICE_TYPE_B
+    if( h->sh.i_type == SLICE_TYPE_B	//B片
         && h->mb.cache.ref[i_list][x264_scan8[12]] == i_ref )
     {
         SET_MVP( h->mb.cache.mv[i_list][x264_scan8[12]] );
@@ -560,6 +601,10 @@ void x264_mb_predict_mv_ref16x16( x264_t *h, int i_list, int i_ref, int mvc[8][2
     *i_mvc = i;
 }
 
+/*
+前向宏块运动补偿
+x,y代表坐标，w,h代表宽和高，应该是说从某个点水平和纵向移动多少吧
+*/
 static inline void x264_mb_mc_0xywh( x264_t *h, int x, int y, int width, int height )
 {
     const int i8 = x264_scan8[0]+x+8*y;
@@ -579,6 +624,10 @@ static inline void x264_mb_mc_0xywh( x264_t *h, int x, int y, int width, int hei
                       &h->mb.pic.p_fdec[2][2*y*FDEC_STRIDE+2*x], FDEC_STRIDE,
                       mvx, mvy, 2*width, 2*height );
 }
+
+/*
+后向宏块运动补偿
+*/
 static inline void x264_mb_mc_1xywh( x264_t *h, int x, int y, int width, int height )
 {
     const int i8 = x264_scan8[0]+x+8*y;
@@ -599,6 +648,9 @@ static inline void x264_mb_mc_1xywh( x264_t *h, int x, int y, int width, int hei
                       mvx, mvy, 2*width, 2*height );
 }
 
+/*
+宏块双向运动补偿
+*/
 static inline void x264_mb_mc_01xywh( x264_t *h, int x, int y, int width, int height )
 {
     const int i8 = x264_scan8[0]+x+8*y;
@@ -643,6 +695,10 @@ static inline void x264_mb_mc_01xywh( x264_t *h, int x, int y, int width, int he
     }
 }
 
+
+/*
+直接模式8*8块运动补偿
+*/
 static void x264_mb_mc_direct8x8( x264_t *h, int x, int y )
 {
     const int i8 = x264_scan8[0] + x + 8*y;
@@ -687,6 +743,10 @@ static void x264_mb_mc_direct8x8( x264_t *h, int x, int y )
     }
 }
 
+
+/*
+各种类型8*8块及其分割的运动补偿
+*/
 void x264_mb_mc_8x8( x264_t *h, int i8 )
 {
     const int x = 2*(i8&1);
@@ -750,6 +810,10 @@ void x264_mb_mc_8x8( x264_t *h, int i8 )
     }
 }
 
+
+/*
+各种类型块及运动补偿，调用以上各mc子函数
+*/
 void x264_mb_mc( x264_t *h )
 {
     if( h->mb.i_type == P_L0 )
@@ -824,6 +888,11 @@ void x264_mb_mc( x264_t *h )
     }
 }
 
+/*
+x264_宏块_缓存_初始化
+cache:缓存
+初始化表征宏块的各变量，分配内存空间
+*/
 int x264_macroblock_cache_init( x264_t *h )
 {
     int i, j;
@@ -865,6 +934,12 @@ int x264_macroblock_cache_init( x264_t *h )
     return 0;
 fail: return -1;
 }
+
+/*
+x264_宏块_缓存_结束()
+注意这儿传送的参数是x264_t这个结构指针，这个很有意思啊
+释放为宏块分配的内存空间
+*/
 void x264_macroblock_cache_end( x264_t *h )
 {
     int i, j;
@@ -887,6 +962,10 @@ void x264_macroblock_cache_end( x264_t *h )
     x264_free( h->mb.cbp );
     x264_free( h->mb.qp );
 }
+
+/*
+初始宏块与slice映射关系
+*/
 void x264_macroblock_slice_init( x264_t *h )
 {
     int i, j;
@@ -924,7 +1003,10 @@ void x264_macroblock_slice_init( x264_t *h )
         memset( h->mb.cache.skip, 0, X264_SCAN8_SIZE * sizeof( int8_t ) );
 }
 
+/*
+宏块cache加载，所有宏块表征变量赋值
 
+*/
 void x264_macroblock_cache_load( x264_t *h, int i_mb_x, int i_mb_y )
 {
     const int i_mb_4x4 = 4*(i_mb_y * h->mb.i_b4_stride + i_mb_x);
@@ -1307,6 +1389,9 @@ void x264_macroblock_cache_load( x264_t *h, int i_mb_x, int i_mb_y )
     h->mb.i_neighbour4[14] = MB_LEFT|MB_TOP|MB_TOPLEFT|MB_TOPRIGHT;
 }
 
+/*
+保存cache中的变量值
+*/
 void x264_macroblock_cache_save( x264_t *h )
 {
     const int i_mb_xy = h->mb.i_mb_xy;
@@ -1482,6 +1567,10 @@ void x264_macroblock_cache_save( x264_t *h )
     }
 }
 
+
+/*
+宏块双向预测初始化
+*/
 void x264_macroblock_bipred_init( x264_t *h )
 {
     int i_ref0, i_ref1;

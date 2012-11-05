@@ -32,21 +32,46 @@
 #include "common.h"
 #include "cpu.h"
 
+/*
+设置缺省日志参数
+*/
 static void x264_log_default( void *, int, const char *, va_list );
 
+
 /****************************************************************************
- * x264_param_default:
+ * x264_test_my1:(简单的测试函数)
+ ****************************************************************************/
+
+void    x264_test_my1()
+{
+//	AfxMessageBox("x264_test_my1");
+}
+
+/****************************************************************************
+ * x264_test_my2:(简单的测试函数)
+ ****************************************************************************/
+
+void    x264_test_my2( char * name)
+{
+
+//	AfxMessageBox(name);
+}
+
+/****************************************************************************
+ * x264_param_default:(为此结构体初始化一些默认值)
+ 设置缺省参数
+
  ****************************************************************************/
 void    x264_param_default( x264_param_t *param )
 {
-    /* */
+    /*初始化内存空间*/
     memset( param, 0, sizeof( x264_param_t ) );
 
     /* CPU autodetect */
     param->cpu = x264_cpu_detect();
     param->i_threads = 1;
 
-    /* Video properties */
+    /* 视频属性 */
     param->i_csp           = X264_CSP_I420;
     param->i_width         = 0;
     param->i_height        = 0;
@@ -63,8 +88,8 @@ void    x264_param_default( x264_param_t *param )
     param->i_fps_den       = 1;
     param->i_level_idc     = 51; /* as close to "unrestricted" as we can get */
 
-    /* Encoder parameters */
-    param->i_frame_reference = 1;
+    /* (编码参数)Encoder parameters */
+    param->i_frame_reference = 1;	/* 参考帧最大数目 */
     param->i_keyint_max = 250;
     param->i_keyint_min = 25;
     param->i_bframe = 0;
@@ -80,17 +105,18 @@ void    x264_param_default( x264_param_t *param )
     param->b_cabac = 1;
     param->i_cabac_init_idc = 0;
 
-    param->rc.i_rc_method = X264_RC_CQP;
-    param->rc.i_bitrate = 0;
+	/*码率控制*/
+    param->rc.i_rc_method = X264_RC_CQP;	/*恒定码率*/
+    param->rc.i_bitrate = 0;				/*设置平均码率大小*/
     param->rc.f_rate_tolerance = 1.0;
-    param->rc.i_vbv_max_bitrate = 0;
-    param->rc.i_vbv_buffer_size = 0;
-    param->rc.f_vbv_buffer_init = 0.9;
-    param->rc.i_qp_constant = 26;
+    param->rc.i_vbv_max_bitrate = 0;		/*平均码率模式下，最大瞬时码率，默认0(与-B设置相同) */
+    param->rc.i_vbv_buffer_size = 0;		/*码率控制缓冲区的大小，单位kbit，默认0 */
+    param->rc.f_vbv_buffer_init = 0.9;		/* <=1: fraction of buffer_size. >1: kbit码率控制缓冲区数据保留的最大数据量与缓冲区大小之比，范围0~1.0，默认0.9*/
+    param->rc.i_qp_constant = 26;			/*最小qp值*/
     param->rc.i_rf_constant = 0;
-    param->rc.i_qp_min = 10;
-    param->rc.i_qp_max = 51;
-    param->rc.i_qp_step = 4;
+    param->rc.i_qp_min = 10;				/*允许的最小量化值 */
+    param->rc.i_qp_max = 51;				/*允许的最大量化值*/
+    param->rc.i_qp_step = 4;				/*帧间最大量化步长 */
     param->rc.f_ip_factor = 1.4;
     param->rc.f_pb_factor = 1.3;
 
@@ -100,16 +126,16 @@ void    x264_param_default( x264_param_t *param )
     param->rc.psz_stat_in = "x264_2pass.log";
     param->rc.psz_rc_eq = "blurCplx^(1-qComp)";
     param->rc.f_qcompress = 0.6;
-    param->rc.f_qblur = 0.5;
-    param->rc.f_complexity_blur = 20;
+    param->rc.f_qblur = 0.5;				/*时间上模糊量化 */
+    param->rc.f_complexity_blur = 20;		/* 时间上模糊复杂性 */
     param->rc.i_zones = 0;
 
-    /* Log */
+    /* 日志 */
     param->pf_log = x264_log_default;
     param->p_log_private = NULL;
     param->i_log_level = X264_LOG_INFO;
 
-    /* */
+    /* 分析 */
     param->analyse.intra = X264_ANALYSE_I4x4 | X264_ANALYSE_I8x8;
     param->analyse.inter = X264_ANALYSE_I4x4 | X264_ANALYSE_I8x8
                          | X264_ANALYSE_PSUB16x16 | X264_ANALYSE_BSUB16x16;
@@ -120,22 +146,27 @@ void    x264_param_default( x264_param_t *param )
     param->analyse.b_chroma_me = 1;
     param->analyse.i_mv_range = -1; // set from level_idc
     param->analyse.i_chroma_qp_offset = 0;
-    param->analyse.b_fast_pskip = 1;
-    param->analyse.b_dct_decimate = 1;
-    param->analyse.b_psnr = 1;
+    param->analyse.b_fast_pskip = 1;			
+    param->analyse.b_dct_decimate = 1;			/*是否显示PSNR*/
+    param->analyse.b_psnr = 1;					/*是否显示SSIM*/
 
-    param->i_cqm_preset = X264_CQM_FLAT;
+	/*量化*/
+    param->i_cqm_preset = X264_CQM_FLAT;		/*自定义量化矩阵(CQM),初始化量化模式为flat 0*/
     memset( param->cqm_4iy, 16, 16 );
     memset( param->cqm_4ic, 16, 16 );
     memset( param->cqm_4py, 16, 16 );
     memset( param->cqm_4pc, 16, 16 );
     memset( param->cqm_8iy, 16, 64 );
-    memset( param->cqm_8py, 16, 64 );
+    memset( param->cqm_8py, 16, 64 );			/*开辟空间*/
 
-    param->b_repeat_headers = 1;
-    param->b_aud = 0;
+	/*muxing*/
+    param->b_repeat_headers = 1;				/* 在每个关键帧前放置SPS/PPS*/
+    param->b_aud = 0;							/*生成访问单元分隔符*/
 }
 
+/*
+
+*/
 static int parse_enum( const char *arg, const char * const *names, int *dst )
 {
     int i;
@@ -475,7 +506,8 @@ int x264_param_parse( x264_param_t *p, const char *name, const char *value )
 }
 
 /****************************************************************************
- * x264_log:
+ * x264_log:定义log级别
+
  ****************************************************************************/
 void x264_log( x264_t *h, int i_level, const char *psz_fmt, ... )
 {
@@ -488,6 +520,9 @@ void x264_log( x264_t *h, int i_level, const char *psz_fmt, ... )
     }
 }
 
+/*
+
+*/
 static void x264_log_default( void *p_unused, int i_level, const char *psz_fmt, va_list arg )
 {
     char *psz_prefix;
@@ -514,27 +549,30 @@ static void x264_log_default( void *p_unused, int i_level, const char *psz_fmt, 
 }
 
 /****************************************************************************
- * x264_picture_alloc:
+ * x264_picture_alloc:设置picture参数,根据输出图像格式分配空间
  ****************************************************************************/
 void x264_picture_alloc( x264_picture_t *pic, int i_csp, int i_width, int i_height )
 {
-    pic->i_type = X264_TYPE_AUTO;
+	//对传入的第一个参数，就是一个结构体的字段赋值
+    pic->i_type = X264_TYPE_AUTO;//#define X264_TYPE_AUTO  0x0000  /* Let x264 choose the right type */
     pic->i_qpplus1 = 0;
-    pic->img.i_csp = i_csp;
-    switch( i_csp & X264_CSP_MASK )
+    pic->img.i_csp = i_csp; //x264_picture_t有四个字段，最后一个字段是个指针数组，用来存放动态分配的内存的地址
+
+    switch( i_csp & X264_CSP_MASK )	//根据色彩空间区分 //实际就是0x0001 & 0x00ff 按位与
     {
-        case X264_CSP_I420:
-        case X264_CSP_YV12:
+        case X264_CSP_I420://0x0001
+        case X264_CSP_YV12://0x0004
             pic->img.i_plane = 3;
-            pic->img.plane[0] = x264_malloc( 3 * i_width * i_height / 2 );
-            pic->img.plane[1] = pic->img.plane[0] + i_width * i_height;
-            pic->img.plane[2] = pic->img.plane[1] + i_width * i_height / 4;
+			//分配内存，把返回的地址保存到字段数组中
+            pic->img.plane[0] = x264_malloc( 3 * i_width * i_height / 2 );	/* 分配了内存，返回首地址 */ //像素总数 * 1.5
+            pic->img.plane[1] = pic->img.plane[0] + i_width * i_height;		/* 首地址 + 像素总数 ->另一段内存地址 */
+            pic->img.plane[2] = pic->img.plane[1] + i_width * i_height / 4; /* 再向后移动地址 */
             pic->img.i_stride[0] = i_width;
             pic->img.i_stride[1] = i_width / 2;
             pic->img.i_stride[2] = i_width / 2;
             break;
 
-        case X264_CSP_I422:
+        case X264_CSP_I422://0x0002
             pic->img.i_plane = 3;
             pic->img.plane[0] = x264_malloc( 2 * i_width * i_height );
             pic->img.plane[1] = pic->img.plane[0] + i_width * i_height;
@@ -554,22 +592,22 @@ void x264_picture_alloc( x264_picture_t *pic, int i_csp, int i_width, int i_heig
             pic->img.i_stride[2] = i_width;
             break;
 
-        case X264_CSP_YUYV:
+        case X264_CSP_YUYV://YUY2（和YUYV）格式为每个像素保留Y分量，而UV分量在水平方向上每两个像素采样一次
             pic->img.i_plane = 1;
-            pic->img.plane[0] = x264_malloc( 2 * i_width * i_height );
+            pic->img.plane[0] = x264_malloc( 2 * i_width * i_height );//像素总数*2
             pic->img.i_stride[0] = 2 * i_width;
             break;
 
         case X264_CSP_RGB:
-        case X264_CSP_BGR:
+        case X264_CSP_BGR://RGB->BGR：把 R 和 B 的位置换一下就行了
             pic->img.i_plane = 1;
-            pic->img.plane[0] = x264_malloc( 3 * i_width * i_height );
+            pic->img.plane[0] = x264_malloc( 3 * i_width * i_height );//像素总数*3
             pic->img.i_stride[0] = 3 * i_width;
             break;
 
         case X264_CSP_BGRA:
             pic->img.i_plane = 1;
-            pic->img.plane[0] = x264_malloc( 4 * i_width * i_height );
+            pic->img.plane[0] = x264_malloc( 4 * i_width * i_height );//像素总数*4
             pic->img.i_stride[0] = 4 * i_width;
             break;
 
@@ -577,11 +615,11 @@ void x264_picture_alloc( x264_picture_t *pic, int i_csp, int i_width, int i_heig
             fprintf( stderr, "invalid CSP\n" );
             pic->img.i_plane = 0;
             break;
-    }
+    }//在平面格式中，Y、U 和 V 组件作为三个单独的平面进行存储。 
 }
 
 /****************************************************************************
- * x264_picture_clean:
+ * x264_picture_clean:释放分配的图像空间
  ****************************************************************************/
 void x264_picture_clean( x264_picture_t *pic )
 {
@@ -592,19 +630,22 @@ void x264_picture_clean( x264_picture_t *pic )
 }
 
 /****************************************************************************
- * x264_nal_encode:
+ * x264_nal_encode:nal单元编码
+ * nalu 打包，加入前缀，header, 数据中加入0x03
+ * 最后那个参数是个结构体，有四个字段，分别是：优先级，类别，x，有效载荷
  ****************************************************************************/
 int x264_nal_encode( void *p_data, int *pi_data, int b_annexeb, x264_nal_t *nal )
 {
     uint8_t *dst = p_data;
-    uint8_t *src = nal->p_payload;
-    uint8_t *end = &nal->p_payload[nal->i_payload];
+    uint8_t *src = nal->p_payload;//指向有效荷载的起始地址
+    uint8_t *end = &nal->p_payload[nal->i_payload];//最后一个字节的地址？
 
     int i_count = 0;
 
     /* FIXME this code doesn't check overflow */
 
-    if( b_annexeb )
+	//nalu surfix(后缀) 0x 00 00 00 01//这句网上搜的注释[毕厚杰：Page158]，起始码
+    if( b_annexeb )//annex:附件，附加
     {
         /* long nal start code (we always use long ones)*/
         *dst++ = 0x00;
@@ -613,15 +654,17 @@ int x264_nal_encode( void *p_data, int *pi_data, int b_annexeb, x264_nal_t *nal 
         *dst++ = 0x01;
     }
 
-    /* nal header */
-    *dst++ = ( 0x00 << 7 ) | ( nal->i_ref_idc << 5 ) | nal->i_type;
-
-    while( src < end )
+    /* nal header [毕厚杰：Page 145 181] 头部1字节，包括禁止位1bit优先级2bit和NAL类型5bit，后面紧跟有效载RBSP*/
+    *dst++ = ( 0x00 << 7 ) | ( nal->i_ref_idc << 5 ) | nal->i_type;//按位或C++primer第三版Page136页位操作符
+							//递增操作符的后置形式，先用当前值，然后才递增C++primer第三版Page127递增和递减操作符
+							//左移七位，正好把第一个隐藏位空下了，左移5位，正好是类型用的5位，七位和五位中间正好是二位，用来放优先级
+	//insert 0x03//这儿看来好象是见2个字节就插入03吗，这样不是插了很多吗
+    while( src < end )//两个地址作比较？
     {
-        if( i_count == 2 && *src <= 0x03 )
+        if( i_count == 2 && *src <= 0x03 )//毕厚杰：图6.6 page158，4个字节序列都要加0x03
         {
             *dst++ = 0x03;
-            i_count = 0;
+            i_count = 0;//插过0x03后计数归0
         }
         if( *src == 0 )
         {
@@ -633,13 +676,15 @@ int x264_nal_encode( void *p_data, int *pi_data, int b_annexeb, x264_nal_t *nal 
         }
         *dst++ = *src++;
     }
-    *pi_data = dst - (uint8_t*)p_data;
+
+	//count nalu length in byte//统计出nalu的长度，单位是字节
+    *pi_data = dst - (uint8_t*)p_data;//p_data是函数参数，没动过，dst一直在移动,pi_data就是专门用来保存这个新长度的
 
     return *pi_data;
 }
 
 /****************************************************************************
- * x264_nal_decode:
+ * x264_nal_decode:nal单元解码
  ****************************************************************************/
 int x264_nal_decode( x264_nal_t *nal, void *p_data, int i_data )
 {
@@ -672,37 +717,39 @@ int x264_nal_decode( x264_nal_t *nal, void *p_data, int i_data )
 
 
 /****************************************************************************
- * x264_malloc:
+ * x264_malloc:X264内部定义的内存分配
+
  ****************************************************************************/
 void *x264_malloc( int i_size )
 {
-#ifdef SYS_MACOSX
-    /* Mac OS X always returns 16 bytes aligned memory */
-    return malloc( i_size );
-#elif defined( HAVE_MALLOC_H )
-    return memalign( 16, i_size );
-#else
-    uint8_t * buf;
-    uint8_t * align_buf;
-    buf = (uint8_t *) malloc( i_size + 15 + sizeof( void ** ) +
-              sizeof( int ) );
-    align_buf = buf + 15 + sizeof( void ** ) + sizeof( int );
-    align_buf -= (long) align_buf & 15;
-    *( (void **) ( align_buf - sizeof( void ** ) ) ) = buf;
-    *( (int *) ( align_buf - sizeof( void ** ) - sizeof( int ) ) ) = i_size;
-    return align_buf;
-#endif
+	#ifdef SYS_MACOSX
+		/* Mac OS X always returns 16 bytes aligned memory */
+		return malloc( i_size );
+	#elif defined( HAVE_MALLOC_H )
+		return memalign( 16, i_size );
+	#else
+		uint8_t * buf;
+		uint8_t * align_buf;
+		buf = (uint8_t *) malloc( i_size + 15 + sizeof( void ** ) +
+				  sizeof( int ) );
+		align_buf = buf + 15 + sizeof( void ** ) + sizeof( int );
+		align_buf -= (long) align_buf & 15;
+		*( (void **) ( align_buf - sizeof( void ** ) ) ) = buf;
+		*( (int *) ( align_buf - sizeof( void ** ) - sizeof( int ) ) ) = i_size;
+		return align_buf;
+	#endif
 }
 
 /****************************************************************************
- * x264_free:
+ * x264_free:X264内存释放
+
  ****************************************************************************/
 void x264_free( void *p )
 {
     if( p )
     {
 #if defined( HAVE_MALLOC_H ) || defined( SYS_MACOSX )
-        free( p );
+        free( p );//C语言的库函数，释放已分配的块
 #else
         free( *( ( ( void **) p ) - 1 ) );
 #endif
@@ -710,7 +757,8 @@ void x264_free( void *p )
 }
 
 /****************************************************************************
- * x264_realloc:
+ * x264_realloc:X264重新分配图像空间
+
  ****************************************************************************/
 void *x264_realloc( void *p, int i_size )
 {
@@ -735,7 +783,8 @@ void *x264_realloc( void *p, int i_size )
 }
 
 /****************************************************************************
- * x264_reduce_fraction:
+ * x264_reduce_fraction:分数化简
+
  ****************************************************************************/
 void x264_reduce_fraction( int *n, int *d )
 {
@@ -756,7 +805,8 @@ void x264_reduce_fraction( int *n, int *d )
 }
 
 /****************************************************************************
- * x264_slurp_file:
+ * x264_slurp_file:将文件读入分配的缓存区
+
  ****************************************************************************/
 char *x264_slurp_file( const char *filename )
 {
@@ -788,7 +838,8 @@ char *x264_slurp_file( const char *filename )
 }
 
 /****************************************************************************
- * x264_param2string:
+ * x264_param2string:转换参数为字符串,返回字符串存放的地址
+
  ****************************************************************************/
 char *x264_param2string( x264_param_t *p, int b_res )
 {

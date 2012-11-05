@@ -19,6 +19,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111, USA.
+ 为了支持H264复杂的帧存机制，X264以专门的一个模块frame.c进行处理
+ common/frame.c中包括一组帧缓冲操作函数。包括对帧进行FILO和FIFO存取，空闲帧队列的相应操作等
  *****************************************************************************/
 
 #include <stdio.h>
@@ -26,6 +28,10 @@
 
 #include "common.h"
 
+/*
+创建新帧
+
+*/
 x264_frame_t *x264_frame_new( x264_t *h )
 {
     x264_frame_t *frame = x264_malloc( sizeof(x264_frame_t) );
@@ -130,6 +136,10 @@ fail:
     return NULL;
 }
 
+/*
+删除帧,释放空间
+
+*/
 void x264_frame_delete( x264_frame_t *frame )
 {
     int i, j;
@@ -148,6 +158,10 @@ void x264_frame_delete( x264_frame_t *frame )
     x264_free( frame );
 }
 
+/*
+将图像拷贝到帧中
+
+*/
 void x264_frame_copy_picture( x264_t *h, x264_frame_t *dst, x264_picture_t *src )
 {
     dst->i_type     = src->i_type;
@@ -157,8 +171,8 @@ void x264_frame_copy_picture( x264_t *h, x264_frame_t *dst, x264_picture_t *src 
     switch( src->img.i_csp & X264_CSP_MASK )
     {
         case X264_CSP_I420:
-            h->csp.i420( dst, &src->img, h->param.i_width, h->param.i_height );
-            break;
+            h->csp.i420( dst, &src->img, h->param.i_width, h->param.i_height );//x264_t中x264_csp_function_t   csp;
+            break;//???通过函数指针调用函数???
         case X264_CSP_YV12:
             h->csp.yv12( dst, &src->img, h->param.i_width, h->param.i_height );
             break;
@@ -189,6 +203,10 @@ void x264_frame_copy_picture( x264_t *h, x264_frame_t *dst, x264_picture_t *src 
 
 
 
+/*
+边界扩展(被其他具体的扩展函数调用)
+
+*/
 static void plane_expand_border( uint8_t *pix, int i_stride, int i_height, int i_pad )
 {
 #define PPIXEL(x, y) ( pix + (x) + (y)*i_stride )
@@ -211,6 +229,10 @@ static void plane_expand_border( uint8_t *pix, int i_stride, int i_height, int i
 #undef PPIXEL
 }
 
+/*
+帧边界扩展
+
+*/
 void x264_frame_expand_border( x264_frame_t *frame )
 {
     int i;
@@ -221,6 +243,10 @@ void x264_frame_expand_border( x264_frame_t *frame )
     }
 }
 
+/*
+为滤波进行的边界扩展
+
+*/
 void x264_frame_expand_border_filtered( x264_frame_t *frame )
 {
     /* during filtering, 8 extra pixels were filtered on each edge. 
@@ -230,6 +256,10 @@ void x264_frame_expand_border_filtered( x264_frame_t *frame )
         plane_expand_border( frame->filtered[i] - 8*frame->i_stride[0] - 8, frame->i_stride[0], frame->i_lines[0]+2*8, 24 );
 }
 
+/*
+为计算亮度半像素值进行边界扩展
+
+*/
 void x264_frame_expand_border_lowres( x264_frame_t *frame )
 {
     int i;
@@ -237,35 +267,42 @@ void x264_frame_expand_border_lowres( x264_frame_t *frame )
         plane_expand_border( frame->lowres[i], frame->i_stride_lowres, frame->i_lines_lowres, 32 );
 }
 
-void x264_frame_expand_border_mod16( x264_t *h, x264_frame_t *frame )
+/*
+帧边界不是16整数倍时进行边界扩展
+
+*/
+void x264_frame_expand_border_mod16( x264_t *h, x264_frame_t *frame )//让长和宽都是16的倍数
 {
     int i, y;
-    for( i = 0; i < frame->i_plane; i++ )
+    for( i = 0; i < frame->i_plane; i++ )//每个frame会有3个plane，YUV
     {
-        int i_subsample = i ? 1 : 0;
-        int i_width = h->param.i_width >> i_subsample;
+        int i_subsample = i ? 1 : 0;//i为0时，右侧为0，i非0时，右侧为1
+        int i_width = h->param.i_width >> i_subsample;//...>>0或...>>1两种情况
         int i_height = h->param.i_height >> i_subsample;
-        int i_padx = ( h->sps->i_mb_width * 16 - h->param.i_width ) >> i_subsample;
+        int i_padx = ( h->sps->i_mb_width * 16 - h->param.i_width ) >> i_subsample;//pad:衰减器，填充//i_mb_width指的是从宽度上说有多少个宏快
         int i_pady = ( h->sps->i_mb_height * 16 - h->param.i_height ) >> i_subsample;
 
-        if( i_padx )
+        if( i_padx )//i_padx是计算出来的要扩展的列数
         {
-            for( y = 0; y < i_height; y++ )
+            for( y = 0; y < i_height; y++ )//每列都有i_height个像素
                 memset( &frame->plane[i][y*frame->i_stride[i] + i_width],
                          frame->plane[i][y*frame->i_stride[i] + i_width - 1],
-                         i_padx );
+                         i_padx );//向右延伸，把靠近的复制过去
         }
         if( i_pady )
         {
             for( y = i_height; y < i_height + i_pady; y++ )
                 memcpy( &frame->plane[i][y*frame->i_stride[i]],
                         &frame->plane[i][(i_height-1)*frame->i_stride[i]],
-                        i_width + i_padx );
+                        i_width + i_padx );//向下延伸，把靠近的复制过来
         }
     }
-}
+}//视频：http://www.powercam.cc/slide/8377
 
 
+/*
+
+*/
 /* Deblocking filter */
 
 static const int i_alpha_table[52] =
@@ -277,6 +314,10 @@ static const int i_alpha_table[52] =
     80, 90,101,113,127,144,162,182,203,226,
     255, 255
 };
+
+/*
+
+*/
 static const int i_beta_table[52] =
 {
      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
@@ -286,6 +327,10 @@ static const int i_beta_table[52] =
     13, 13, 14, 14, 15, 15, 16, 16, 17, 17,
     18, 18
 };
+
+/*
+
+*/
 static const int i_tc0_table[52][3] =
 {
     { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 },
@@ -299,6 +344,9 @@ static const int i_tc0_table[52][3] =
     { 9,12,18 }, {10,13,20 }, {11,15,23 }, {13,17,25 }
 };
 
+/*
+
+*/
 /* From ffmpeg */
 static inline int clip_uint8( int a )
 {
@@ -308,6 +356,10 @@ static inline int clip_uint8( int a )
         return a;
 }
 
+/*
+bs=1~3时,修正亮度MB边界的p0和q0值
+
+*/
 static inline void deblock_luma_c( uint8_t *pix, int xstride, int ystride, int alpha, int beta, int8_t *tc0 )
 {
     int i, d;
@@ -348,15 +400,28 @@ static inline void deblock_luma_c( uint8_t *pix, int xstride, int ystride, int a
         }
     }
 }
+
+/*
+亮度分量垂直边界去块滤波
+
+*/
 static void deblock_v_luma_c( uint8_t *pix, int stride, int alpha, int beta, int8_t *tc0 )
 {
     deblock_luma_c( pix, stride, 1, alpha, beta, tc0 ); 
 }
+
+/*
+亮度分量水平边界去块滤波
+
+*/
 static void deblock_h_luma_c( uint8_t *pix, int stride, int alpha, int beta, int8_t *tc0 )
 {
     deblock_luma_c( pix, 1, stride, alpha, beta, tc0 );
 }
 
+/*
+bs=1~3时,修正色度MB边界的p0和q0值
+*/
 static inline void deblock_chroma_c( uint8_t *pix, int xstride, int ystride, int alpha, int beta, int8_t *tc0 )
 {
     int i, d;
@@ -384,15 +449,29 @@ static inline void deblock_chroma_c( uint8_t *pix, int xstride, int ystride, int
         }
     }
 }
+
+/*
+色度分量垂直边界去块滤波
+
+*/
 static void deblock_v_chroma_c( uint8_t *pix, int stride, int alpha, int beta, int8_t *tc0 )
 {   
     deblock_chroma_c( pix, stride, 1, alpha, beta, tc0 );
 }
+
+/*
+色度分量水平边界去块滤波
+
+*/
 static void deblock_h_chroma_c( uint8_t *pix, int stride, int alpha, int beta, int8_t *tc0 )
 {   
     deblock_chroma_c( pix, 1, stride, alpha, beta, tc0 );
 }
 
+/*
+bs=4时,修正亮度MB边界的值
+
+*/
 static inline void deblock_luma_intra_c( uint8_t *pix, int xstride, int ystride, int alpha, int beta )
 {
     int d;
@@ -440,15 +519,29 @@ static inline void deblock_luma_intra_c( uint8_t *pix, int xstride, int ystride,
         pix += ystride;
     }
 }
+
+/*
+帧内亮度分量垂直边界去块滤波
+
+*/
 static void deblock_v_luma_intra_c( uint8_t *pix, int stride, int alpha, int beta )
 {   
     deblock_luma_intra_c( pix, stride, 1, alpha, beta );
 }
+
+/*
+帧内亮度分量水平边界去块滤波
+
+*/
 static void deblock_h_luma_intra_c( uint8_t *pix, int stride, int alpha, int beta )
 {   
     deblock_luma_intra_c( pix, 1, stride, alpha, beta );
 }
 
+/*
+bs=4时,修正色度MB边界的值
+
+*/
 static inline void deblock_chroma_intra_c( uint8_t *pix, int xstride, int ystride, int alpha, int beta )
 {   
     int d; 
@@ -469,15 +562,29 @@ static inline void deblock_chroma_intra_c( uint8_t *pix, int xstride, int ystrid
         pix += ystride;
     }
 }
+
+/*
+帧内色度分量垂直边界去块滤波
+
+*/
 static void deblock_v_chroma_intra_c( uint8_t *pix, int stride, int alpha, int beta )
 {   
     deblock_chroma_intra_c( pix, stride, 1, alpha, beta );
 }
+
+/*
+帧内色度分量水平边界去块滤波
+
+*/
 static void deblock_h_chroma_intra_c( uint8_t *pix, int stride, int alpha, int beta )
 {   
     deblock_chroma_intra_c( pix, 1, stride, alpha, beta );
 }
 
+/*
+bs值确定
+
+*/
 static inline void deblock_edge( x264_t *h, uint8_t *pix, int i_stride, int bS[4], int i_qp, int b_chroma,
                                  x264_deblock_inter_t pf_inter, x264_deblock_intra_t pf_intra )
 {
@@ -496,6 +603,10 @@ static inline void deblock_edge( x264_t *h, uint8_t *pix, int i_stride, int bS[4
     }
 }
 
+/*
+帧去块滤波主函数
+
+*/
 void x264_frame_deblocking_filter( x264_t *h, int i_slice_type )
 {
     const int s8x8 = 2 * h->mb.i_mb_stride;
@@ -661,6 +772,9 @@ void x264_deblock_h_luma_sse2( uint8_t *pix, int stride, int alpha, int beta, in
 void x264_deblock_h_luma_mmxext( uint8_t *pix, int stride, int alpha, int beta, int8_t *tc0 );
 void x264_deblock_v8_luma_mmxext( uint8_t *pix, int stride, int alpha, int beta, int8_t *tc0 );
 
+/*
+
+*/
 void x264_deblock_v_luma_mmxext( uint8_t *pix, int stride, int alpha, int beta, int8_t *tc0 )
 {
     x264_deblock_v8_luma_mmxext( pix,   stride, alpha, beta, tc0   );
@@ -668,6 +782,10 @@ void x264_deblock_v_luma_mmxext( uint8_t *pix, int stride, int alpha, int beta, 
 }
 #endif
 
+/*
+去块滤波初始化
+
+*/
 void x264_deblock_init( int cpu, x264_deblock_function_t *pf )
 {
     pf->deblock_v_luma = deblock_v_luma_c;

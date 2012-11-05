@@ -179,6 +179,11 @@ static int bs_read_vlc( bs_t *s, x264_vlc_table_t *table )
     return( i_value );
 }
 
+/*
+block:宏块
+residual:残留的，剩余的
+cavlc:基于内容的自适应变长编码
+*/
 static int block_residual_read_cavlc( x264_t *h, bs_t *s, x264_macroblock_t *mb,
                                       int i_idx, int *l, int i_count )
 {
@@ -195,7 +200,7 @@ static int block_residual_read_cavlc( x264_t *h, bs_t *s, x264_macroblock_t *mb,
         l[i] = 0;
     }
 
-    /* total/trailing */
+    /* total(全部)/trailing(拖尾) */
     if( i_idx == BLOCK_INDEX_CHROMA_DC )
     {
         int i_tt;
@@ -295,7 +300,7 @@ static int block_residual_read_cavlc( x264_t *h, bs_t *s, x264_macroblock_t *mb,
         {
             i_level_code += 2;
         }
-        /* Optimise */
+        /* Optimise(优化) */
         level[i] = i_level_code&0x01 ? -((i_level_code+1)/2) : (i_level_code+2)/2;
 
         if( i_suffix_length == 0 )
@@ -363,6 +368,9 @@ static int block_residual_read_cavlc( x264_t *h, bs_t *s, x264_macroblock_t *mb,
     return 0;
 }
 
+/*
+传入一个数组的指针，循环将每一个元素都设为0
+*/
 static inline void array_zero_set( int *l, int i_count )
 {
     int i;
@@ -879,6 +887,7 @@ static int x264_mb_pred_mode4x4_valid( x264_macroblock_t *mb, int idx, int i_mod
 /****************************************************************************
  * UnScan functions
  ****************************************************************************/
+//scan_zigzag_x的元素和scan_zigzag_y的元素，按顺序配对，正好是ZZ扫描的顺序的坐标(x,y)
 static const int scan_zigzag_x[16]={0, 1, 0, 0, 1, 2, 3, 2, 1, 0, 1, 2, 3, 3, 2, 3};
 static const int scan_zigzag_y[16]={0, 0, 1, 2, 1, 0, 0, 1, 2, 3, 3, 2, 1, 2, 3, 3};
 

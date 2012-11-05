@@ -22,23 +22,23 @@
  *****************************************************************************/
 
 #ifndef _MATROSKA_H
-#define _MATROSKA_H 1
+	#define _MATROSKA_H 1
 
-typedef struct mk_Writer mk_Writer;
+	typedef struct mk_Writer mk_Writer;
 
-mk_Writer *mk_createWriter( const char *filename );
+	mk_Writer *mk_createWriter( const char *filename );
 
-int  mk_writeHeader( mk_Writer *w, const char *writingApp,
-                     const char *codecID,
-                     const void *codecPrivate, unsigned codecPrivateSize,
-                     int64_t default_frame_duration,
-                     int64_t timescale,
-                     unsigned width, unsigned height,
-                     unsigned d_width, unsigned d_height );
+	int  mk_writeHeader( mk_Writer *w, const char *writingApp,
+						 const char *codecID,
+						 const void *codecPrivate, unsigned codecPrivateSize,
+						 int64_t default_frame_duration,
+						 int64_t timescale,
+						 unsigned width, unsigned height,
+						 unsigned d_width, unsigned d_height );
 
-int  mk_startFrame( mk_Writer *w );
-int  mk_addFrameData( mk_Writer *w, const void *data, unsigned size );
-int  mk_setFrameFlags( mk_Writer *w, int64_t timestamp, int keyframe );
-int  mk_close( mk_Writer *w );
+	int  mk_startFrame( mk_Writer *w );	/* 开始帧 */
+	int  mk_addFrameData( mk_Writer *w, const void *data, unsigned size );	/* 增加帧数据 */
+	int  mk_setFrameFlags( mk_Writer *w, int64_t timestamp, int keyframe );	/* 设置帧标志 */
+	int  mk_close( mk_Writer *w );	/* 关闭 */
 
 #endif

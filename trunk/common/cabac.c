@@ -19,6 +19,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111, USA.
+ CABAC:基于上下文自适应二进制算术熵编码
  *****************************************************************************/
 
 #include <string.h>
@@ -26,8 +27,10 @@
 
 #include "common.h"
 
-
-static const int x264_cabac_context_init_I[460][2] =
+/*
+CABAC上下文取值表初始化
+*/
+static const int x264_cabac_context_init_I[460][2] =	//cabac上下文初始化
 {
     /* 0 - 10 */
     { 20, -15 }, {  2, 54 },  {  3,  74 }, { 20, -15 },
@@ -196,7 +199,10 @@ static const int x264_cabac_context_init_I[460][2] =
     {  29,   9 }, {  35,  20 }, {  29,  36 }, {  14,  67 }
 };
 
-static const int x264_cabac_context_init_PB[3][460][2] =
+/*
+CABAC上下文取值表初始化
+*/
+static const int x264_cabac_context_init_PB[3][460][2] =	//
 {
     /* i_cabac_init_idc == 0 */
     {
@@ -667,9 +673,9 @@ static const int x264_cabac_context_init_PB[3][460][2] =
     }
 };
 
-/* FIXME could avoid this duplication by reversing the order of states
- * with MPS=0, but that would uglify the other tables */
-static const int x264_cabac_range_lps[128][4] =
+/* FIXME could avoid(避免) this duplication(重复) by reversing(翻转) the order of states
+ * with MPS=0, but that would uglify(丑化) the other tables */
+static const int x264_cabac_range_lps[128][4] =//range:范围,级别,值域
 {
     {   2,   2,   2,   2 },
     {   6,   7,   8,   9 }, {   6,   7,   9,  10 }, {   6,   8,   9,  11 },
@@ -717,7 +723,12 @@ static const int x264_cabac_range_lps[128][4] =
     {   6,   8,   9,  11 }, {   6,   7,   9,  10 }, {   6,   7,   8,   9 },
     {   2,   2,   2,   2 },
 };
-
+//transition:转换
+/*
+二维的数组
+a0,a1,a2,......a127
+b0,b1,b2,......b127
+*/
 static const int x264_cabac_transition[2][128] =
 {{
       0,  1,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14,
@@ -739,7 +750,8 @@ static const int x264_cabac_transition[2][128] =
     113,114,115,116,117,118,119,120,121,122,123,124,125,126,126,127,
 }};
 
-static const int x264_cabac_probability[128] =
+//probability:概率
+static const int x264_cabac_probability[128] =//probability:概率
 {
     FIX8(0.9812), FIX8(0.9802), FIX8(0.9792), FIX8(0.9781),
     FIX8(0.9769), FIX8(0.9757), FIX8(0.9744), FIX8(0.9730),
@@ -777,7 +789,7 @@ static const int x264_cabac_probability[128] =
 /* -ln2(probability) */
 static const int x264_cabac_entropy[128] =
 {
-    FIX8(0.0273), FIX8(0.0288), FIX8(0.0303), FIX8(0.0320),
+    FIX8(0.0273), FIX8(0.0288), FIX8(0.0303), FIX8(0.0320),//#define FIX8(f) ((int)(f*(1<<8)+.5))
     FIX8(0.0337), FIX8(0.0355), FIX8(0.0375), FIX8(0.0395),
     FIX8(0.0416), FIX8(0.0439), FIX8(0.0463), FIX8(0.0488),
     FIX8(0.0515), FIX8(0.0543), FIX8(0.0572), FIX8(0.0604),
@@ -836,7 +848,7 @@ void x264_cabac_context_init( x264_cabac_t *cb, int i_slice_type, int i_qp, int 
 }
 
 /*****************************************************************************
- *
+ *CABAC解码流初始化
  *****************************************************************************/
 void x264_cabac_decode_init( x264_cabac_t *cb, bs_t *s )
 {
@@ -845,6 +857,10 @@ void x264_cabac_decode_init( x264_cabac_t *cb, bs_t *s )
     cb->s       = s;
 }
 
+/*
+CABAC解码重新标准化
+
+*/
 static inline void x264_cabac_decode_renorm( x264_cabac_t *cb )
 {
     while( cb->i_range < 0x0100 )
@@ -854,6 +870,9 @@ static inline void x264_cabac_decode_renorm( x264_cabac_t *cb )
     }
 }
 
+/*
+
+*/
 int  x264_cabac_decode_decision( x264_cabac_t *cb, int i_ctx )
 {
     int i_state = cb->state[i_ctx];
@@ -909,7 +928,7 @@ void x264_cabac_encode_init( x264_cabac_t *cb, bs_t *s )
     cb->i_range = 0x01FE;
     cb->i_bits_outstanding = 0;
     cb->s = s;
-    s->i_left++; // the first bit will be shifted away and not written
+    s->i_left++; // the first bit will be shifted移位 away离开 and not written
 }
 
 static inline void x264_cabac_putbit( x264_cabac_t *cb, int b )
@@ -953,7 +972,7 @@ static inline void x264_cabac_encode_renorm( x264_cabac_t *cb )
     }
 }
 
-void x264_cabac_encode_decision( x264_cabac_t *cb, int i_ctx, int b )
+void x264_cabac_encode_decision( x264_cabac_t *cb, int i_ctx, int b )//decision:判断
 {
     int i_state = cb->state[i_ctx];
     int i_range_lps = x264_cabac_range_lps[i_state][(cb->i_range>>6)&0x03];
@@ -988,7 +1007,7 @@ void x264_cabac_encode_bypass( x264_cabac_t *cb, int b )
     }
 }
 
-void x264_cabac_encode_terminal( x264_cabac_t *cb, int b )
+void x264_cabac_encode_terminal( x264_cabac_t *cb, int b )//terminal:期限；末期
 {
     cb->i_range -= 2;
     if( b )
@@ -999,7 +1018,7 @@ void x264_cabac_encode_terminal( x264_cabac_t *cb, int b )
     x264_cabac_encode_renorm( cb );
 }
 
-void x264_cabac_encode_flush( x264_cabac_t *cb )
+void x264_cabac_encode_flush( x264_cabac_t *cb )//flush:刷新
 {
     x264_cabac_putbit( cb, (cb->i_low >> 9)&0x01 );
     bs_write1( cb->s, (cb->i_low >> 8)&0x01 );
@@ -1019,13 +1038,14 @@ void x264_cabac_size_decision( x264_cabac_t *cb, int i_ctx, int b )
     cb->f8_bits_encoded += x264_cabac_entropy[ b ? 127 - i_state : i_state ];
 }
 
-int x264_cabac_size_decision2( uint8_t *state, int b )
+int x264_cabac_size_decision2( uint8_t *state, int b )//decision:选定,判定
 {
     int i_state = *state;
-    *state = x264_cabac_transition[b][i_state];
-    return x264_cabac_entropy[ b ? 127 - i_state : i_state ];
+    *state = x264_cabac_transition[b][i_state];//transition:转变
+    return x264_cabac_entropy[ b ? 127 - i_state : i_state ];//entropy:熵值；熵
 }
 
+//decision:判断
 int x264_cabac_size_decision_noup( uint8_t *state, int b )
 {
     return x264_cabac_entropy[ b ? 127 - *state : *state ];

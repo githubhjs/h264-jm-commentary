@@ -1,5 +1,7 @@
 /*****************************************************************************
  * me.c: h264 encoder library (Motion Estimation)
+ * estimation: 估计, 评价, 判断
+ * move: 运动
  *****************************************************************************
  * Copyright (C) 2003 Laurent Aimar
  * $Id: me.c,v 1.1 2004/06/03 19:27:08 fenrir Exp $
@@ -28,10 +30,10 @@
 #include "common/common.h"
 #include "me.h"
 
-/* presets selected from good points on the speed-vs-quality curve of several test videos
+/* presets(预设) selected from good points on the speed-vs-quality curve(曲线) of several(几个,数个) test videos
  * subpel_iters[i_subpel_refine] = { refine_hpel, refine_qpel, me_hpel, me_qpel }
- * where me_* are the number of EPZS iterations run on all candidate block types,
- * and refine_* are run only on the winner. */
+ * where me_* are the number of EPZS(EPZS算法) iterations(反复、迭代 2.循环 3.重复) run on all candidate(候选者) block types,
+ * and refine_*(使……达到最) are run only on the winner(优胜者). */
 static const int subpel_iterations[][4] = 
    {{1,0,0,0},
     {1,1,0,0},
@@ -633,8 +635,8 @@ static void refine_subpel( x264_t *h, x264_me_t *m, int hpel_iters, int qpel_ite
         COST_MV_SATD( bmx, bmy, -1 );
     }
 
-    /* early termination when examining multiple reference frames */
-    if( p_halfpel_thresh )
+    /* early(提早) termination(结束) when examining(检查) multiple(复合的) reference frames(参考) */
+    if( p_halfpel_thresh )	//thresh:推敲;pel:像素
     {
         if( (bcost*7)>>3 > *p_halfpel_thresh )
         {
@@ -648,7 +650,9 @@ static void refine_subpel( x264_t *h, x264_me_t *m, int hpel_iters, int qpel_ite
             *p_halfpel_thresh = bcost;
     }
 
-    /* quarterpel diamond search */
+    /* quarterpel diamond(菱形) search(搜索) 
+	quarter:四分之一
+	*/
     bdir = -1;
     for( i = qpel_iters; i > 0; i-- )
     {
@@ -668,7 +672,9 @@ static void refine_subpel( x264_t *h, x264_me_t *m, int hpel_iters, int qpel_ite
     m->mv[1] = bmy;
     m->cost_mv = p_cost_mvx[ bmx ] + p_cost_mvy[ bmy ];
 }
-
+/*
+BI:出血指数
+*/
 #define BIME_CACHE( dx, dy ) \
 { \
     int i = 4 + 3*dx + dy; \
@@ -745,8 +751,8 @@ int x264_me_refine_bidir( x264_t *h, x264_me_t *m0, x264_me_t *m1, int i_weight 
 
     for( pass = 0; pass < 8; pass++ )
     {
-        /* check all mv pairs that differ in at most 2 components from the current mvs. */
-        /* doesn't do chroma ME. this probably doesn't matter, as the gains
+        /* check all mv pairs(一对) that differ(不同) in at most 2 components(分量) from the current mvs. */
+        /* doesn't do chroma ME. this probably(很可能；或许) doesn't matter( 事情;问题;事件), as the gains(得到;获得,收益；增益)
          * from bidir ME are the same with and without chroma ME. */
 
         BIME_CACHE2( 1, 0 );
@@ -778,7 +784,10 @@ int x264_me_refine_bidir( x264_t *h, x264_me_t *m0, x264_me_t *m1, int i_weight 
     m1->mv[1] = bm1y;
     return bcost;
 }
-
+/*
+SATD:计算方法
+cost:成本
+*/
 #undef COST_MV_SATD
 #define COST_MV_SATD( mx, my, dst ) \
 { \
@@ -789,6 +798,7 @@ int x264_me_refine_bidir( x264_t *h, x264_me_t *m0, x264_me_t *m1, int i_weight 
     COPY1_IF_LT( bsatd, dst ); \
 }
 
+//cost:成本
 #define COST_MV_RD( mx, my, satd, dir ) \
 { \
     if( satd <= bsatd * SATD_THRESH \
@@ -804,11 +814,11 @@ int x264_me_refine_bidir( x264_t *h, x264_me_t *m0, x264_me_t *m1, int i_weight 
     } \
 }
 
-#define SATD_THRESH 17/16
+#define SATD_THRESH 17/16	//THRESH:反复地做;推敲,研讨
 
 void x264_me_refine_qpel_rd( x264_t *h, x264_me_t *m, int i_lambda2, int i8 )
 {
-    // don't have to fill the whole mv cache rectangle
+    // don't have to fill the whole mv cache rectanglen 不必去填充整个mv 缓冲矩形
     static const int pixel_mv_offs[] = { 0, 4, 4*8, 0 };
     int16_t *cache_mv = h->mb.cache.mv[0][x264_scan8[i8*4]];
     int16_t *cache_mv2 = cache_mv + pixel_mv_offs[m->i_pixel];
@@ -825,7 +835,7 @@ void x264_me_refine_qpel_rd( x264_t *h, x264_me_t *m, int i_lambda2, int i8 )
     int odir = -1, bdir;
     unsigned bsatd, satds[4];
 
-    int visited[16*13] = {0}; // only need 13x13, but 16 is more convenient
+    int visited[16*13] = {0}; // only need 13x13, but 16 is more convenient(便利的)
     int *p_visited = &visited[6+6*16];
 
     if( m->i_pixel != PIXEL_16x16 && i8 != 0 )
@@ -838,7 +848,7 @@ void x264_me_refine_qpel_rd( x264_t *h, x264_me_t *m, int i_lambda2, int i8 )
     if( m->i_pixel != PIXEL_16x16 )
         COST_MV_RD( bmx, bmy, 0, -1 );
 
-    /* check the predicted mv */
+    /* check the predicted(预测) mv */
     if( (bmx != pmx || bmy != pmy)
         && pmx >= h->mb.mv_min_spel[0] && pmx <= h->mb.mv_max_spel[0]
         && pmy >= h->mb.mv_min_spel[1] && pmy <= h->mb.mv_max_spel[1] )
@@ -877,7 +887,7 @@ void x264_me_refine_qpel_rd( x264_t *h, x264_me_t *m, int i_lambda2, int i8 )
             break;
     }
 
-    /* qpel diamond */
+    /* qpel diamond钻石菱形 */
     bdir = -1;
     for( i = 0; i < 2; i++ )
     {

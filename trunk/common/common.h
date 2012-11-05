@@ -69,7 +69,7 @@
 #define X264_MIN4(a,b,c,d) X264_MIN((a),X264_MIN3((b),(c),(d)))
 #define X264_MAX4(a,b,c,d) X264_MAX((a),X264_MAX3((b),(c),(d)))
 #define XCHG(type,a,b) { type t = a; a = b; b = t; }
-#define FIX8(f) ((int)(f*(1<<8)+.5))
+#define FIX8(f) ((int)(f*(1<<8)+.5))//fix:取整数，修理
 
 #if defined(__GNUC__) && (__GNUC__ > 3 || __GNUC__ == 3 && __GNUC_MINOR__ > 0)
 #define UNUSED __attribute__((unused))
@@ -109,7 +109,7 @@
 /****************************************************************************
  * Generals functions
  ****************************************************************************/
-/* x264_malloc : will do or emulate a memalign
+/* x264_malloc : will do or emulate(模仿) a memalign(内存对齐?)
  * XXX you HAVE TO use x264_free for buffer allocated
  * with x264_malloc
  */
@@ -120,7 +120,7 @@ void  x264_free( void * );
 /* x264_slurp_file: malloc space for the whole file and read it */
 char *x264_slurp_file( const char *filename );
 
-/* mdate: return the current date in microsecond */
+/* mdate: return the current date in microsecond( 一百万分之一秒,微秒) */
 int64_t x264_mdate( void );
 
 /* x264_param2string: return a (malloced) string containing most of
@@ -160,15 +160,15 @@ static inline int x264_median( int a, int b, int c )
 
 
 /****************************************************************************
- *
+ *片_类型//毕厚杰书，第164页
  ****************************************************************************/
 enum slice_type_e
 {
-    SLICE_TYPE_P  = 0,
-    SLICE_TYPE_B  = 1,
-    SLICE_TYPE_I  = 2,
-    SLICE_TYPE_SP = 3,
-    SLICE_TYPE_SI = 4
+    SLICE_TYPE_P  = 0,//P片
+    SLICE_TYPE_B  = 1,//B片
+    SLICE_TYPE_I  = 2,//I片
+    SLICE_TYPE_SP = 3,//SP片
+    SLICE_TYPE_SI = 4//SI片
 };
 
 static const char slice_type_to_char[] = { 'P', 'B', 'I', 'S', 'S' };
@@ -178,60 +178,64 @@ typedef struct
     x264_sps_t *sps;
     x264_pps_t *pps;
 
-    int i_type;
-    int i_first_mb;
-    int i_last_mb;
+    int i_type;		//[毕厚杰：Page 164] 相当于slice_type，指明片的类型；0123456789对应P、B、I、SP、SI 
+    int i_first_mb;	//[毕厚杰：Page 164] 相当于 first_mb_in_slice 片中的第一个宏块的地址，片通过这个句法元素来标定它自己的地址。要注意的是，在帧场自适应模式下，宏块都是成对出现的，这时本句法元素表示的是第几个宏块对，对应的第一个宏块的真实地址应该是2*---
+    int i_last_mb;	//最后一个宏块
 
-    int i_pps_id;
+    int i_pps_id;	//[毕厚杰：Page 164] 相当于 pic_parameter_set_id ; 图像参数集的索引号，取值范围[0,255]
 
-    int i_frame_num;
+    int i_frame_num;	//[毕厚杰：Page 164] 相当于 frame_num ; 只有当这个图像是参考帧时，它所携带的这个句法元素在解码时才有意义，
+						//[毕厚杰：Page 164] 相当于 frame_num ; 每个参考帧都有一个依次连续的frame_num作为它们的标识，这指明了各图像的解码顺序。frame_num所能达到的最大值由前文序列参数集中的句法元素推出。毕P164
+    int b_field_pic;	//[毕厚杰：Page 165] 相当于 field_pic_flag; 这是在片层标识图像编码模式的唯一一个句法元素。所谓的编码模式是指的帧编码、场编码、帧场自适应编码。当这个句法元素取值为1时属于场编码，0时为非场编码。
+    int b_bottom_field;	//[毕厚杰：Page 166] 相当于 bottom_field_flag ;  =1时表示当前的图像是属于底场，=0时表示当前图像属于顶场
 
-    int b_field_pic;
-    int b_bottom_field;
+    int i_idr_pic_id;   /* -1 if nal_type != 5 */ 
+						//[毕厚杰：Page 164] 相当于idr_pic_id ;IDR图像的标识。不同的IDR图像有不同的idr_pic_id值。值得注意的是，IDR图像不等价于I图像，只有在作为IDR图像的I帧才有这个句法元素。在场模式下，IDR帧的两个场有相同的idr_pic_id值。idr_pic_id的取值范围是[0,65536]，和frame_num类似，当它的值超过这个范围时，它会以循环的方式重新开始计数。
 
-    int i_idr_pic_id;   /* -1 if nal_type != 5 */
+    int i_poc_lsb;		//[毕厚杰：Page 166] 相当于 pic_order_cnt_lsb，在POC的第一种算法中本句法元素来计算POC值，在POC的第一种算法中是显式地传递POC的值，而其他两种算法是通过frame_num来映射POC的值，注意这个句法元素的读取函数是u(v)，这个v的值是序列参数集的句法元素--+4个比特得到的。取值范围是...
+    int i_delta_poc_bottom;	//[毕厚杰：Page 166] 相当于 delta_pic_order_cnt_bottom，如果是在场模式下，场对中的两个场各自被构造为一个图像，它们有各自的POC算法来分别计算两个场的POC值，也就是一个场对拥有一对POC值；而在帧模式或帧场自适应模式下，一个图像只能根据片头的句法元素计算出一个POC值。根据H.264的规定，在序列中可能出现场的情况，即frame_mbs_only_flag不为1时，每个帧或帧场自适应的图像在解码完后必须分解为两个场，以供后续图像中的场作为参考图像。所以当时frame_mb_only_flag不为1时，帧或帧场自适应
 
-    int i_poc_lsb;
-    int i_delta_poc_bottom;
+    int i_delta_poc[2]; //[毕厚杰：Page 167] 相当于 delta_pic_order_cnt[0] , delta_pic_order_cnt[1]
+    int i_redundant_pic_cnt;	//[毕厚杰：Page 167] 相当于 redundant_pic_cnt;冗余片的id号，取值范围[0,127]
 
-    int i_delta_poc[2];
-    int i_redundant_pic_cnt;
+    int b_direct_spatial_mv_pred;	//[毕厚杰：Page 167] 相当于 direct_spatial_mv_pred；指出在B图像的直接预测模式下，用时间预测还是用空间预测，1表示空间预测，0表示时间预测。直接预测在书上94页
 
-    int b_direct_spatial_mv_pred;
+    int b_num_ref_idx_override;		//[毕厚杰：Page 167] 相当于 num_ref_idx_active_override_flag，在图像参数集中，有两个句法元素指定当前参考帧队列中实际可用的参考帧的数目。在片头可以重载这对句法元素，以给某特定图像更大的灵活度。这个句法元素就是指明片头是否会重载，如果该句法元素等于1，下面会出现新的num_ref_idx_10_active_minus1和...11...
+    int i_num_ref_idx_l0_active;	//[毕厚杰：Page 167] 相当于 num_ref_idx_10_active_minus1
+    int i_num_ref_idx_l1_active;	//[毕厚杰：Page 167] 相当于 num_ref_idx_11_active_minus1
 
-    int b_num_ref_idx_override;
-    int i_num_ref_idx_l0_active;
-    int i_num_ref_idx_l1_active;
-
-    int b_ref_pic_list_reordering_l0;
-    int b_ref_pic_list_reordering_l1;
+    int b_ref_pic_list_reordering_l0;//短期参考图像列表重排序?
+    int b_ref_pic_list_reordering_l1;//长期参考图像列表重排序?
     struct {
         int idc;
         int arg;
-    } ref_pic_list_order[2][16];
+    } ref_pic_list_order[2][16];	 
 
-    int i_cabac_init_idc;
+    int i_cabac_init_idc;//[毕厚杰：Page 167] 相当于 cabac_init_idc，给出cabac初始化时表格的选择，取值范围为[0,2]
 
-    int i_qp;
-    int i_qp_delta;
-    int b_sp_for_swidth;
-    int i_qs_delta;
+    int i_qp;//
+    int i_qp_delta;//[毕厚杰：Page 167] 相当于 slice_qp_delta，指出用于当前片的所有宏块的量化参数的初始值
+    int b_sp_for_swidth;////[毕厚杰：Page 167] 相当于 sp_for_switch_flag
+    int i_qs_delta;//[毕厚杰：Page 167] 相当于 slice_qs_delta，与slice_qp_delta语义相似，用在SI和SP中，由下式计算：...
 
     /* deblocking filter */
-    int i_disable_deblocking_filter_idc;
+    int i_disable_deblocking_filter_idc;//[毕厚杰：Page 167] 相当于 disable_deblocking_filter_idc，H.264规定一套可以在解码器端独立地计算图像中各边界的滤波强度进行
     int i_alpha_c0_offset;
     int i_beta_offset;
 
-} x264_slice_header_t;
-
+} x264_slice_header_t;	//x264_片_头_
+//x264这块的变量命名，与毕厚杰书上说的变量有一些出入，x264加了类型符号，比如i_、b_，另外省掉了_flag，进行了缩写，如_poc_，实际是pic_order_cnt_lsb，_pps_，实际为pic_parameter_set_id
 /* From ffmpeg
  */
-#define X264_SCAN8_SIZE (6*8)
-#define X264_SCAN8_0 (4+1*8)
+#define X264_SCAN8_SIZE (6*8)	//
+#define X264_SCAN8_0 (4+1*8)	//
 
-static const int x264_scan8[16+2*4] =
+/*
+这是一个坐标变换用的查找表,是个数组,将0--23变换为一个8x8矩阵中的4x4 和2个2x2 的块扫描
+*/
+static const int x264_scan8[16+2*4] =	//
 {
-    /* Luma */
+    /* Luma亮度 */
     4+1*8, 5+1*8, 4+2*8, 5+2*8,
     6+1*8, 7+1*8, 6+2*8, 7+2*8,
     4+3*8, 5+3*8, 4+4*8, 5+4*8,
@@ -246,6 +250,12 @@ static const int x264_scan8[16+2*4] =
     1+5*8, 2+5*8,
 };
 /*
+变换矩阵如下,先luma亮度,然后chroma(色度) b chroma(色度) r,都是从一个2x2小块开始,raster(光栅) scan
+其中L块先第一44块raster scane 再第二44块 scane
+每一个块的左边和上边是空出来的,用来存放left和top mb的 4x4小块的intra pre mode
+*/
+
+/*
    0 1 2 3 4 5 6 7
  0
  1   B B   L L L L
@@ -255,17 +265,18 @@ static const int x264_scan8[16+2*4] =
  5   R R
 */
 
-typedef struct x264_ratecontrol_t   x264_ratecontrol_t;
+typedef struct x264_ratecontrol_t   x264_ratecontrol_t;//ratecontrol.c(85):struct x264_ratecontrol_t
 typedef struct x264_vlc_table_t     x264_vlc_table_t;
 
+//x264_t结构体维护着CODEC的诸多重要信息
 struct x264_t
 {
-    /* encoder parameters */
+    /* encoder parameters ( 编码器参数 )*/
     x264_param_t    param;
 
     x264_t *thread[X264_SLICE_MAX];
 
-    /* bitstream output */
+    /* bitstream output ( 字节流输出 ) */
     struct
     {
         int         i_nal;
@@ -275,7 +286,7 @@ struct x264_t
         bs_t        bs;
     } out;
 
-    /* frame number/poc */
+    /* frame number/poc ( 帧序号 )*/
     int             i_frame;
 
     int             i_frame_offset; /* decoding only */
@@ -288,7 +299,7 @@ struct x264_t
     int             i_nal_type;     /* threads only */
     int             i_nal_ref_idc;  /* threads only */
 
-    /* We use only one SPS and one PPS */
+    /* We use only one SPS(序列参数集) and one PPS(图像参数集) */
     x264_sps_t      sps_array[1];
     x264_sps_t      *sps;
     x264_pps_t      pps_array[1];
@@ -306,44 +317,44 @@ struct x264_t
     uint32_t        nr_offset[2][64];
     uint32_t        nr_count[2];
 
-    /* Slice header */
+    /* Slice header (片头部) */
     x264_slice_header_t sh;
 
-    /* cabac context */
+    /* cabac(适应性二元算术编码) context */
     x264_cabac_t    cabac;
 
     struct
     {
-        /* Frames to be encoded (whose types have been decided) */
-        x264_frame_t *current[X264_BFRAME_MAX+3];
-        /* Temporary buffer (frames types not yet decided) */
-        x264_frame_t *next[X264_BFRAME_MAX+3];
-        /* Unused frames */
-        x264_frame_t *unused[X264_BFRAME_MAX+3];
-        /* For adaptive B decision */
+        /* Frames to be encoded (whose types have been decided(明确的) ) */
+        x264_frame_t *current[X264_BFRAME_MAX+3];//current是已经准备就绪可以编码的帧，其类型已经确定
+        /* Temporary(临时的) buffer (frames types not yet decided) */
+        x264_frame_t *next[X264_BFRAME_MAX+3];//next是尚未确定类型的帧
+        /* 未使用的帧Unused frames */
+        x264_frame_t *unused[X264_BFRAME_MAX+3];//unused用于回收不使用的frame结构体以备今后再次使用
+        /* For adaptive(适应的) B decision(决策) */
         x264_frame_t *last_nonb;
 
-        /* frames used for reference +1 for decoding + sentinels */
+        /* frames used for reference +1 for decoding + sentinels (发射器,标记) */
         x264_frame_t *reference[16+2+1+2];
 
-        int i_last_idr; /* Frame number of the last IDR */
+        int i_last_idr; /* Frame number of the last IDR (立即刷新图像) */
 
-        int i_input;    /* Number of input frames already accepted */
+        int i_input;    //frames结构体中i_input指示当前输入的帧的（播放顺序）序号。/* Number of input frames already accepted */
 
-        int i_max_dpb;  /* Number of frames allocated in the decoded picture buffer */
+        int i_max_dpb;  /* Number of frames allocated (分配) in the decoded picture buffer */
         int i_max_ref0;
         int i_max_ref1;
-        int i_delay;    /* Number of frames buffered for B reordering */
-        int b_have_lowres;  /* Whether 1/2 resolution luma planes are being used */
-    } frames;
+        int i_delay;    //i_delay设置为由B帧个数（线程个数）确定的帧缓冲延迟，在多线程情况下为i_delay = i_bframe + i_threads - 1。而判断B帧缓冲填充是否足够则通过条件判断：h->frames.i_input <= h->frames.i_delay + 1 - h->param.i_threads。 /* Number of frames buffered for B reordering (重新排序) */
+        int b_have_lowres;  /* Whether 1/2 resolution (分辨率) luma(亮度) planes(平面) are being used */
+    } frames;//指示和控制帧编码过程的结构
 
     /* current frame being encoded */
     x264_frame_t    *fenc;
 
-    /* frame being reconstructed */
+    /* frame being reconstructed(重建的) */
     x264_frame_t    *fdec;
 
-    /* references lists */
+    /* references(参考) lists */
     int             i_ref0;
     x264_frame_t    *fref0[16+3];     /* ref list 0 */
     int             i_ref1;
@@ -352,12 +363,12 @@ struct x264_t
 
 
 
-    /* Current MB DCT coeffs */
+    /* Current MB DCT coeffs(估计系数) */
     struct
     {
         DECLARE_ALIGNED( int, luma16x16_dc[16], 16 );
         DECLARE_ALIGNED( int, chroma_dc[2][4], 16 );
-        // FIXME merge with union
+        // FIXME merge(合并) with union(结合,并集)
         DECLARE_ALIGNED( int, luma8x8[4][64], 16 );
         union
         {
@@ -366,12 +377,12 @@ struct x264_t
         } block[16+8];
     } dct;
 
-    /* MB table and cache for current frame/mb */
+    /* MB table and cache(高速缓冲存储器) for current frame/mb */
     struct
     {
-        int     i_mb_count;                 /* number of mbs in a frame */
+        int     i_mb_count;                 /* number of mbs in a frame */ /* 在一帧中的宏块中的序号 */
 
-        /* Strides */
+        /* Strides (跨,越) */
         int     i_mb_stride;
         int     i_b8_stride;
         int     i_b4_stride;
@@ -383,14 +394,14 @@ struct x264_t
         int     i_b8_xy;
         int     i_b4_xy;
         
-        /* Search parameters */
+        /* Search parameters (搜索参数) */
         int     i_me_method;
         int     i_subpel_refine;
         int     b_chroma_me;
         int     b_trellis;
         int     b_noise_reduction;
 
-        /* Allowed qpel MV range to stay within the picture + emulated edge pixels */
+        /* Allowed qpel(四分之一映像点) MV range to stay (继续,停留) within the picture + emulated(模拟) edge (边) pixels */
         int     mv_min[2];
         int     mv_max[2];
         /* Subpel MV range for motion search.
@@ -503,7 +514,7 @@ struct x264_t
     } mb;
 
     /* rate control encoding only */
-    x264_ratecontrol_t *rc;
+    x264_ratecontrol_t *rc;//struct x264_ratecontrol_t,ratecontrol.c中定义
 
     /* stats */
     struct
@@ -523,7 +534,7 @@ struct x264_t
             int i_mb_count_i;
             int i_mb_count_p;
             int i_mb_count_skip;
-            int i_mb_count_8x8dct[2];
+            int i_mb_count_8x8dct[2];//宏块数_8x8DCT
             int i_mb_count_size[7];
             int i_mb_count_ref[16];
             /* Estimated (SATD) cost as Intra/Predicted frame */
@@ -558,7 +569,7 @@ struct x264_t
     } stat;
 
     /* CPU functions dependants */
-    x264_predict_t      predict_16x16[4+3];
+    x264_predict_t      predict_16x16[4+3];//predict:预测
     x264_predict_t      predict_8x8c[4+3];
     x264_predict8x8_t   predict_8x8[9+3];
     x264_predict_t      predict_4x4[9+3];
@@ -566,9 +577,9 @@ struct x264_t
     x264_pixel_function_t pixf;
     x264_mc_functions_t   mc;
     x264_dct_function_t   dctf;
-    x264_csp_function_t   csp;
-    x264_quant_function_t quantf;
-    x264_deblock_function_t loopf;
+    x264_csp_function_t   csp;//x264_csp_function_t是一个结构体，在common/csp.h中定义
+    x264_quant_function_t quantf;//在common/quant.h中定义
+    x264_deblock_function_t loopf;//在common/frame.h中定义
 
     /* vlc table for decoding purpose only */
     x264_vlc_table_t *x264_coeff_token_lookup[5];
@@ -582,6 +593,10 @@ struct x264_t
 #endif
 };
 
+void    x264_test_my1();
+void    x264_test_my2(char * name);
+
+//在最后包含它是因为它需要x264_t
 // included at the end because it needs x264_t
 #include "macroblock.h"
 

@@ -1,5 +1,6 @@
 /*****************************************************************************
  * analyse.h: h264 encoder library
+ * analyse : 分解;分析;解析
  *****************************************************************************
  * Copyright (C) 2003 Laurent Aimar
  * $Id: analyse.h,v 1.1 2004/06/03 19:27:08 fenrir Exp $
@@ -24,7 +25,7 @@
 #ifndef _ANALYSE_H
 #define _ANALYSE_H 1
 
-void x264_macroblock_analyse( x264_t *h );
-void x264_slicetype_decide( x264_t *h );
+void x264_macroblock_analyse( x264_t *h );//宏块分解
+void x264_slicetype_decide( x264_t *h );//条带/片类型判断  decide:判定,判断
 
 #endif

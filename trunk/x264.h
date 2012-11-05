@@ -1,5 +1,6 @@
 /*****************************************************************************
  * x264.h: h264 encoder library
+ 视讯通讯实验室：http://www.powercam.cc/vclab
  *****************************************************************************
  * Copyright (C) 2003 Laurent Aimar
  * $Id: x264.h,v 1.1 2004/06/03 19:24:12 fenrir Exp $
@@ -54,7 +55,7 @@ typedef struct x264_t x264_t;
 #define X264_CPU_3DNOWEXT   0x000020    /* 3dnow! ext */
 #define X264_CPU_ALTIVEC    0x000040    /* altivec */
 
-/* Analyse flags
+/* Analyse(分析, 分解, 解释) flags
  */
 #define X264_ANALYSE_I4x4       0x0001  /* Analyse i4x4 */
 #define X264_ANALYSE_I8x8       0x0002  /* Analyse i8x8 (requires 8x8 transform) */
@@ -86,7 +87,8 @@ static const char * const x264_colorprim_names[] = { "", "bt709", "undef", "", "
 static const char * const x264_transfer_names[] = { "", "bt709", "undef", "", "bt470m", "bt470bg", "smpte170m", "smpte240m", "linear", "log100", "log316", 0 };
 static const char * const x264_colmatrix_names[] = { "GBR", "bt709", "undef", "", "fcc", "bt470bg", "smpte170m", "smpte240m", "YCgCo", 0 };
 
-/* Colorspace type
+/* 
+Colorspace type (色彩空间类型)
  */
 #define X264_CSP_MASK           0x00ff  /* */
 #define X264_CSP_NONE           0x0000  /* Invalid mode     */
@@ -100,7 +102,8 @@ static const char * const x264_colmatrix_names[] = { "GBR", "bt709", "undef", ""
 #define X264_CSP_BGRA           0x0008  /* bgr 32bits       */
 #define X264_CSP_VFLIP          0x1000  /* */
 
-/* Slice type
+/* 
+Slice type (片/条带类型)
  */
 #define X264_TYPE_AUTO          0x0000  /* Let x264 choose the right type */
 #define X264_TYPE_IDR           0x0001
@@ -122,59 +125,78 @@ static const char * const x264_colmatrix_names[] = { "GBR", "bt709", "undef", ""
 typedef struct
 {
     int i_start, i_end;
-    int b_force_qp;
+    int b_force_qp;//是否_强制_qp
     int i_qp;
-    float f_bitrate_factor;
-} x264_zone_t;
+    float f_bitrate_factor;//float_比特率_因子,系数
+} x264_zone_t;//zone:区域
 
 typedef struct
 {
-    /* CPU flags */
+    /* (CPU 标志位)*/
     unsigned int cpu;
-    int         i_threads;  /* divide each frame into multiple slices, encode in parallel */
+    int         i_threads;  /* (并行编码多帧) divide each frame into multiple slices, encode in parallel */
 
-    /* Video Properties */
-    int         i_width;
-    int         i_height;
-    int         i_csp;  /* CSP of encoded bitstream, only i420 supported */
-    int         i_level_idc; 
-    int         i_frame_total; /* number of frames to encode if known, else 0 */
+    /* 视频属性 */
+    int         i_width;		/* 宽度*/
+    int         i_height;		/* 高度*/
+    int         i_csp;			/* (编码比特流的CSP,仅支持i420，色彩空间设置) CSP of encoded bitstream, only i420 supported */
+    int         i_level_idc;	/* level值的设置 */
+    int         i_frame_total;	/* 编码帧的总数, 默认 0 */
 
+	/* Vui参数集视频可用性信息视频标准化选项 */
     struct
     {
         /* they will be reduced to be 0 < x <= 65535 and prime */
-        int         i_sar_height;
-        int         i_sar_width;
+        int         i_sar_height;	/*  */
+        int         i_sar_width;	/* 设置长宽比 */
 
-        int         i_overscan;    /* 0=undef, 1=no overscan, 2=overscan */
+        int         i_overscan;    /* 过扫描线，默认"undef"(不设置)，可选项：show(观看)/crop(去除) 0=undef, 1=no overscan, 2=overscan */
         
-        /* see h264 annex E for the values of the following */
-        int         i_vidformat;
-        int         b_fullrange;
-        int         i_colorprim;
-        int         i_transfer;
-        int         i_colmatrix;
-        int         i_chroma_loc;    /* both top & bottom */
+        /* see h264 annex(附录) E for the values of the following */
+        int         i_vidformat;	/* 视频格式，默认"undef"，component/pal/ntsc/secam/mac/undef */
+        int         b_fullrange;	/* Specify full range samples setting，默认"off"，可选项：off/on */
+        int         i_colorprim;	/* 原始色度格式，默认"undef"，可选项：undef/bt709/bt470m/bt470bg，smpte170m/smpte240m/film */
+        int         i_transfer;		/* 转换方式，默认"undef"，可选项：undef/bt709/bt470m/bt470bg/linear,log100/log316/smpte170m/smpte240m */
+        int         i_colmatrix;	/* 色度矩阵设置，默认"undef",undef/bt709/fcc/bt470bg,smpte170m/smpte240m/GBR/YCgCo */
+        int         i_chroma_loc;   /* 色度样本指定，范围0~5，默认0 both top & bottom */
     } vui;
 
     int         i_fps_num;
-    int         i_fps_den;
+    int         i_fps_den;//i_fps_den
+					/*这两个参数是由fps帧率确定的，赋值的过程见下：
+					{        float fps;      
+					if( sscanf( value, "%d/%d", &p->i_fps_num, &p->i_fps_den ) == 2 )
+					;
+					else if( sscanf( value, "%f", &fps ) )
+					{
+					p->i_fps_num = (int)(fps * 1000 + .5);
+					p->i_fps_den = 1000;
+					}
+					else
+					b_error = 1;
+					}
+					输入的Value的值就是fps。*/
 
-    /* Bitstream parameters */
-    int         i_frame_reference;  /* Maximum number of reference frames */
-    int         i_keyint_max;       /* Force an IDR keyframe at this interval */
-    int         i_keyint_min;       /* Scenecuts closer together than this are coded as I, not IDR. */
-    int         i_scenecut_threshold; /* how aggressively to insert extra I frames */
-    int         i_bframe;   /* how many b-frame between 2 references pictures */
-    int         b_bframe_adaptive;
-    int         i_bframe_bias;
-    int         b_bframe_pyramid;   /* Keep some B-frames as references */
 
+
+    /* (流参数)Bitstream parameters */
+    int         i_frame_reference;  /* 参考帧最大数目 */
+    int         i_keyint_max;       /* 在此间隔设置IDR关键帧(每过多少帧设置一个IDR帧) Force an IDR keyframe at this interval */
+    int         i_keyint_min;       /* 场景切换少于此值编码为I帧, 而不是 IDR帧Scenecuts closer together than this are coded as I, not IDR. */
+    int         i_scenecut_threshold; /* 控制多怎样插入I帧how aggressively to insert extra I frames */
+    int         i_bframe;   /* 在两个参考帧之间B帧的数目how many b-frame between 2 references pictures */
+    int         b_bframe_adaptive;/* 自适应B帧判定 */
+    int         i_bframe_bias;/*控制插入B帧判定，范围-100~+100，越高越容易插入B帧，默认0*/
+
+    int         b_bframe_pyramid;   /* 允许部分B为参考帧,可选值为0，1，2 Keep some B-frames as references */
+
+	/*去方块滤波器需要的参数，alpha和beta是去方块滤波器的参数*/
     int         b_deblocking_filter;
     int         i_deblocking_filter_alphac0;    /* [-6, 6] -6 light filter, 6 strong */
     int         i_deblocking_filter_beta;       /* [-6, 6]  idem */
 
-    int         b_cabac;
+	/*熵编码 */
+    int         b_cabac;		//CABAC，基于上下文的自适应二进制算术熵编码
     int         i_cabac_init_idc;
 
     int         i_cqm_preset;
@@ -192,16 +214,16 @@ typedef struct
     int         i_log_level;
     int         b_visualize;
 
-    /* Encoder analyser parameters */
+    /* 编码分析参数Encoder analyser parameters */
     struct
     {
-        unsigned int intra;     /* intra partitions */
-        unsigned int inter;     /* inter partitions */
+        unsigned int intra;     /* 帧间分区intra partitions */
+        unsigned int inter;     /* 帧内分区inter partitions */
 
-        int          b_transform_8x8;
-        int          b_weighted_bipred; /* implicit weighting for B-frames */
-        int          i_direct_mv_pred; /* spatial vs temporal mv prediction */
-        int          i_chroma_qp_offset;
+        int          b_transform_8x8;/* 帧间分区 */
+        int          b_weighted_bipred; /* 为b帧隐式加权implicit weighting for B-frames */
+        int          i_direct_mv_pred; /* 时间空间队运动预测spatial vs temporal mv prediction */
+        int          i_chroma_qp_offset;/*色度量化步长偏移量 */
 
         int          i_me_method; /* motion estimation algorithm to use (X264_ME_*) */
         int          i_me_range; /* integer pixel motion estimation search range (from predicted mv) */
@@ -219,7 +241,7 @@ typedef struct
         int          b_psnr;    /* Do we compute PSNR stats (save a few % of cpu) */
     } analyse;
 
-    /* Rate control parameters */
+    /* Rate control parameters 速率控制参数 */
     struct
     {
         int         i_rc_method;    /* X264_RC_* */
@@ -262,13 +284,13 @@ typedef struct
 
 typedef struct {
     int level_idc;
-    int mbps;        // max macroblock processing rate (macroblocks/sec)
-    int frame_size;  // max frame size (macroblocks)
-    int dpb;         // max decoded picture buffer (bytes)
-    int bitrate;     // max bitrate (kbit/sec)
-    int cpb;         // max vbv buffer (kbit)
-    int mv_range;    // max vertical mv component range (pixels)
-    int mvs_per_2mb; // max mvs per 2 consecutive mbs.
+    int mbps;        // 最大宏块处理速度，单位是 宏块数/秒 max macroblock processing(处理) rate (macroblocks/sec)
+    int frame_size;  // 最大帧尺寸，以宏块为单位 max frame size (macroblocks)
+    int dpb;         // 最大解码图像缓存区，单位是比特 max decoded picture buffer (bytes)
+    int bitrate;     // 最大比特率 k比特/秒 max bitrate (kbit/sec)
+    int cpb;         // 最大vbv缓冲，单位kbit max vbv buffer (kbit)
+    int mv_range;    // max vertica(垂直)l mv component(分量) range范围 (pixels)
+    int mvs_per_2mb; // max mvs per 2 consecutive(连续的) mbs.
     int slice_rate;  // ??
     int bipred8x8;   // limit bipred to >=8x8
     int direct8x8;   // limit b_direct to >=8x8
@@ -279,7 +301,7 @@ typedef struct {
 extern const x264_level_t x264_levels[];
 
 /* x264_param_default:
- *      fill x264_param_t with default values and do CPU detection */
+ *      fill x264_param_t with default values and do CPU detection(探测) */
 void    x264_param_default( x264_param_t * );
 
 /* x264_param_parse:
@@ -293,83 +315,95 @@ int x264_param_parse( x264_param_t *, const char *name, const char *value );
 
 /****************************************************************************
  * Picture structures and functions.
+ * 用read_frame_yuv函数从文件中读取的内容放到这个结构体的
  ****************************************************************************/
 typedef struct
 {
-    int     i_csp;
+    int     i_csp;//Csp: color space parameter 色彩空间参数 X264只支持I420
 
-    int     i_plane;
-    int     i_stride[4];
-    uint8_t *plane[4];
+    int     i_plane;//i_Plane 代表色彩空间的个数。一般为3，YUV，初始化为
+    int     i_stride[4];//跨距。表面的跨距，有时也称为间距，指的是表面的宽度，以字节数表示。对于一个表面原点位于左上角的表面来说，跨距总是正数
+    uint8_t *plane[4];	//typedef unsigned char   uint8_t //sizeof(unsigned char) = 1
 } x264_image_t;
 
 typedef struct
 {
-    /* In: force picture type (if not auto) XXX: ignored for now
+    /* In: force picture type (if not auto) XXX: ignored (忽视) for now
      * Out: type of the picture encoded */
-    int     i_type;
-    /* In: force quantizer for > 0 */
-    int     i_qpplus1;
+    int     i_type;//I_type 指明被编码图像的类型，有X264_TYPE_AUTO X264_TYPE_IDR X264_TYPE_I X264_TYPE_P X264_TYPE_BREF X264_TYPE_B可供选择，初始化为AUTO，说明由x264在编码过程中自行控制。
+    /* In: force (强制) quantizer (量化器) for > 0 */
+    int     i_qpplus1;//I_qpplus1 ：此参数减1代表当前画面的量化参数值
     /* In: user pts, Out: pts of encoded picture (user)*/
-    int64_t i_pts;
+    int64_t i_pts;//I_pts ：program time stamp 程序时间戳，指示这幅画面编码的时间戳。
+
+
 
     /* In: raw data */
-    x264_image_t img;
+    x264_image_t img;//Img :存放真正一副图像的原始数据。////x264_picture_t->img.plane[0] x264_picture_t->img.plane[1] x264_picture_t->img.plane[2] 这里面存原始图像
 } x264_picture_t;
+//x264_picture_t和x264_frame_t的区别.前者是说明一个视频序列中每帧的特点.后者存放每帧实际的象素值.注意区分
+
+
 
 /* x264_picture_alloc:
  *  alloc data for a picture. You must call x264_picture_clean on it. */
+/*  分配数据给一个图片，必须调用x264_picture_clean清除 */
 void x264_picture_alloc( x264_picture_t *pic, int i_csp, int i_width, int i_height );
 
 /* x264_picture_clean:
  *  free associated resource for a x264_picture_t allocated with
- *  x264_picture_alloc ONLY */
+ *  x264_picture_alloc ONLY 
+ * 释放由x264_picture_alloc分配的资源
+*/
 void x264_picture_clean( x264_picture_t *pic );
 
 /****************************************************************************
  * NAL structure and functions:
  ****************************************************************************/
 /* nal */
+//毕厚杰：表6.20，第159页，应该是0至12,13至23,24至31
 enum nal_unit_type_e
 {
-    NAL_UNKNOWN = 0,
-    NAL_SLICE   = 1,
-    NAL_SLICE_DPA   = 2,
-    NAL_SLICE_DPB   = 3,
-    NAL_SLICE_DPC   = 4,
-    NAL_SLICE_IDR   = 5,    /* ref_idc != 0 */
+    NAL_UNKNOWN = 0,		//未使用
+    NAL_SLICE   = 1,		//不分区、非IDR图像的片
+    NAL_SLICE_DPA   = 2,	//片分区A
+    NAL_SLICE_DPB   = 3,	//片分区B
+    NAL_SLICE_DPC   = 4,	//片分区C
+    NAL_SLICE_IDR   = 5,    /* ref_idc != 0 nal_unit_type=5时，表示当前NAL是IDR图像的一个片，在这种情况下，IDR图像中的每个片的nal_unit_type都应该等于5。注意片分区不可用于IDR图像 ，当nal_unit_type=5时，nal_ref_idc大于0，nal_unit_type等于6,9,10,11,12时，nal_ref_idc等于0*/
     NAL_SEI         = 6,    /* ref_idc == 0 */
-    NAL_SPS         = 7,
-    NAL_PPS         = 8,
-    NAL_AUD         = 9,
+    NAL_SPS         = 7,	//序列参数集
+    NAL_PPS         = 8,	//图像参数集
+    NAL_AUD         = 9,	//分界符
     /* ref_idc == 0 for 6,9,10,11,12 */
 };
-enum nal_priority_e
+enum nal_priority_e//priority:优先权,优先级
 {
-    NAL_PRIORITY_DISPOSABLE = 0,
-    NAL_PRIORITY_LOW        = 1,
-    NAL_PRIORITY_HIGH       = 2,
-    NAL_PRIORITY_HIGHEST    = 3,
-};
+    NAL_PRIORITY_DISPOSABLE = 0,//NAL_优先级_可丢弃的
+    NAL_PRIORITY_LOW        = 1,//NAL_优先级_低
+    NAL_PRIORITY_HIGH       = 2,//NAL_优先级_高
+    NAL_PRIORITY_HIGHEST    = 3,//NAL_优先级_最高
+};	//[毕厚杰：Page159 nal_ref_idc] 指示当前NAL的优先级，取值范围0-3，值越高，表示当前NAL越重要，越需要优先受到保护，H.264规定如果当前NAL是一个序列参数集，或一个图像参数集，或属于参考图像的片或片分区等重要的数据单位时，本句法元素必须大于0。但在大于0时具体该取何值，并没有进一步的规定。
 
 typedef struct
 {
-    int i_ref_idc;  /* nal_priority_e */
-    int i_type;     /* nal_unit_type_e */
+    int i_ref_idc;  /* nal_priority_e (nal优先级) */
+    int i_type;     /* nal_unit_type_e (nal单元类型) */
 
-    /* This data are raw payload */
+    /* This data are raw(原始的) payload(载荷) */
     int     i_payload;
-    uint8_t *p_payload;
+    uint8_t *p_payload;//有效负荷
 } x264_nal_t;
 
 /* x264_nal_encode:
  *      encode a nal into a buffer, setting the size.
- *      if b_annexeb then a long synch work is added
+ *      if b_annexeb then a long synch(同时;同步;同步信号) work is added
  *      XXX: it currently doesn't check for overflow */
 int x264_nal_encode( void *, int *, int b_annexeb, x264_nal_t *nal );
 
 /* x264_nal_decode:
- *      decode a buffer nal into a x264_nal_t */
+ *      decode a buffer nal into a x264_nal_t 
+ *      解码一个缓冲区 nal 到 一个 结构体
+*/
 int x264_nal_decode( x264_nal_t *nal, void *, int );
 
 /****************************************************************************
@@ -377,20 +411,32 @@ int x264_nal_decode( x264_nal_t *nal, void *, int );
  ****************************************************************************/
 
 /* x264_encoder_open:
- *      create a new encoder handler, all parameters from x264_param_t are copied */
+ *      create a new encoder handler, all parameters from x264_param_t are copied 
+ *      建立一个新的编码器 ，所有参数从结构体拷贝
+*/
 x264_t *x264_encoder_open   ( x264_param_t * );
+
 /* x264_encoder_reconfig:
  *      change encoder options while encoding,
- *      analysis-related parameters from x264_param_t are copied */
+ *      analysis(解析)-related(相关的) parameters from x264_param_t are copied 
+ *      编码过程中改变编码器选项
+*/
 int     x264_encoder_reconfig( x264_t *, x264_param_t * );
+
 /* x264_encoder_headers:
  *      return the SPS and PPS that will be used for the whole stream */
 int     x264_encoder_headers( x264_t *, x264_nal_t **, int * );
+
 /* x264_encoder_encode:
- *      encode one picture */
+ *      encode one picture 
+ *		编码一个图片
+*/
 int     x264_encoder_encode ( x264_t *, x264_nal_t **, int *, x264_picture_t *, x264_picture_t * );
+
 /* x264_encoder_close:
- *      close an encoder handler */
+ *      close an encoder handler 
+ *		关闭一个编码处理器
+*/
 void    x264_encoder_close  ( x264_t * );
 
 /* XXX: decoder isn't working so no need to export it */

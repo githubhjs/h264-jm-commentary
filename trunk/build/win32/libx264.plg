@@ -1,0 +1,345 @@
+<html>
+<body>
+<pre>
+<h1>Build Log</h1>
+<h3>
+--------------------Configuration: libx264 - Win32 Debug--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating temporary file "C:\DOCUME~1\ADMINI~1\LOCALS~1\Temp\RSP5C.tmp" with contents
+[
+/nologo /MLd /W3 /Gm /GX /Zi /Od /I "./common" /I "./encode" /I "./decode" /I "../../extras" /I "../.." /D "_DEBUG" /D "_LIB" /D "WIN32" /D "_MBCS" /D "__X264__" /D "HAVE_MMXEXT" /D "ARCH_X86" /D "HAVE_STDINT_H" /FR"obj/enc_debug/" /Fo"obj/enc_debug/" /Fd"obj/enc_debug/" /FD /GZ /c 
+"D:\x264-060805-vc6\encoder\analyse.c"
+"D:\x264-060805-vc6\encoder\cabac.c"
+"D:\x264-060805-vc6\encoder\cavlc.c"
+"D:\x264-060805-vc6\encoder\encoder.c"
+"D:\x264-060805-vc6\encoder\eval.c"
+"D:\x264-060805-vc6\encoder\macroblock.c"
+"D:\x264-060805-vc6\encoder\me.c"
+"D:\x264-060805-vc6\encoder\ratecontrol.c"
+"D:\x264-060805-vc6\encoder\set.c"
+]
+Creating command line "cl.exe @C:\DOCUME~1\ADMINI~1\LOCALS~1\Temp\RSP5C.tmp" 
+Creating temporary file "C:\DOCUME~1\ADMINI~1\LOCALS~1\Temp\RSP5D.tmp" with contents
+[
+/nologo /MLd /W3 /Gm /GX /Zi /Od /I "./common" /I "./encode" /I "./decode" /I "../../extras" /I "../.." /D "_DEBUG" /D "_LIB" /D "WIN32" /D "_MBCS" /D "__X264__" /D "HAVE_MMXEXT" /D "ARCH_X86" /D "HAVE_STDINT_H" /FR"Debug/" /Fo"Debug/" /Fd"Debug/" /FD /GZ /c 
+"D:\x264-060805-vc6\common\i386\predict-c.c"
+"D:\x264-060805-vc6\common\csp.c"
+"D:\x264-060805-vc6\common\quant.c"
+"D:\x264-060805-vc6\common\set.c"
+]
+Creating command line "cl.exe @C:\DOCUME~1\ADMINI~1\LOCALS~1\Temp\RSP5D.tmp" 
+Creating temporary file "C:\DOCUME~1\ADMINI~1\LOCALS~1\Temp\RSP5E.tmp" with contents
+[
+/nologo /MLd /W3 /Gm /GX /Zi /Od /I "./common" /I "./encode" /I "./decode" /I "../../extras" /I "../.." /D "_DEBUG" /D "_LIB" /D "WIN32" /D "_MBCS" /D "__X264__" /D "HAVE_MMXEXT" /D "ARCH_X86" /D "HAVE_STDINT_H" /FR"obj/core_debug/" /Fo"obj/core_debug/" /Fd"obj/core_debug/" /FD /GZ /c 
+"D:\x264-060805-vc6\common\cabac.c"
+"D:\x264-060805-vc6\common\common.c"
+"D:\x264-060805-vc6\common\cpu.c"
+"D:\x264-060805-vc6\common\dct.c"
+"D:\x264-060805-vc6\common\frame.c"
+"D:\x264-060805-vc6\common\macroblock.c"
+"D:\x264-060805-vc6\common\i386\mc-c.c"
+"D:\x264-060805-vc6\common\mc.c"
+"D:\x264-060805-vc6\common\mdate.c"
+"D:\x264-060805-vc6\common\pixel.c"
+"D:\x264-060805-vc6\common\predict.c"
+]
+Creating command line "cl.exe @C:\DOCUME~1\ADMINI~1\LOCALS~1\Temp\RSP5E.tmp" 
+Creating temporary file "C:\DOCUME~1\ADMINI~1\LOCALS~1\Temp\RSP5F.tmp" with contents
+[
+/nologo /MLd /W3 /Gm /GX /Zi /Od /I "./common" /I "./encode" /I "./decode" /I "../../extras" /I "../.." /D "_DEBUG" /D "_LIB" /D "WIN32" /D "_MBCS" /D "__X264__" /D "HAVE_MMXEXT" /D "ARCH_X86" /D "HAVE_STDINT_H" /FR"obj/util_debug/" /Fo"obj/util_debug/" /Fd"obj/util_debug/" /FD /GZ /c 
+"D:\x264-060805-vc6\extras\getopt.c"
+]
+Creating command line "cl.exe @C:\DOCUME~1\ADMINI~1\LOCALS~1\Temp\RSP5F.tmp" 
+Creating temporary file "C:\DOCUME~1\ADMINI~1\LOCALS~1\Temp\RSP60.tmp" with contents
+[
+/nologo /out:"bin/libx264.lib" 
+".\obj\enc_debug\analyse.obj"
+".\obj\enc_debug\cabac.obj"
+".\obj\enc_debug\cavlc.obj"
+".\obj\enc_debug\encoder.obj"
+".\obj\enc_debug\eval.obj"
+".\obj\enc_debug\macroblock.obj"
+".\obj\enc_debug\me.obj"
+".\obj\enc_debug\ratecontrol.obj"
+".\obj\enc_debug\set.obj"
+".\Debug\predict-c.obj"
+".\obj\core_debug\cabac.obj"
+".\obj\core_debug\common.obj"
+".\obj\core_debug\cpu.obj"
+".\Debug\csp.obj"
+".\obj\core_debug\dct.obj"
+".\obj\core_debug\frame.obj"
+".\obj\core_debug\macroblock.obj"
+".\obj\core_debug\mc-c.obj"
+".\obj\core_debug\mc.obj"
+".\obj\core_debug\mdate.obj"
+".\obj\core_debug\pixel.obj"
+".\obj\core_debug\predict.obj"
+".\Debug\quant.obj"
+".\Debug\set.obj"
+".\obj\util_debug\getopt.obj"
+".\Debug\cpu-a.obj"
+".\Debug\dct-a.obj"
+".\Debug\deblock-a.obj"
+".\Debug\mc-a.obj"
+".\Debug\mc-a2.obj"
+".\Debug\pixel-a.obj"
+".\Debug\pixel-sse2.obj"
+".\Debug\predict-a.obj"
+".\Debug\quant-a.obj"
+]
+Creating command line "link.exe -lib @C:\DOCUME~1\ADMINI~1\LOCALS~1\Temp\RSP60.tmp"
+<h3>Output Window</h3>
+Compiling...
+analyse.c
+../..\common/common.h(359) : error C2485: 'align' : unrecognized extended attribute
+../..\common/common.h(359) : error C2059: syntax error : '('
+../..\common/common.h(360) : error C2485: 'align' : unrecognized extended attribute
+../..\common/common.h(360) : error C2059: syntax error : '('
+../..\common/common.h(362) : error C2485: 'align' : unrecognized extended attribute
+../..\common/common.h(362) : error C2059: syntax error : '('
+../..\common/common.h(365) : error C2485: 'align' : unrecognized extended attribute
+../..\common/common.h(365) : error C2059: syntax error : '('
+../..\common/common.h(366) : error C2485: 'align' : unrecognized extended attribute
+../..\common/common.h(366) : error C2059: syntax error : '('
+../..\common/common.h(445) : error C2485: 'align' : unrecognized extended attribute
+../..\common/common.h(445) : error C2059: syntax error : '('
+../..\common/common.h(446) : error C2485: 'align' : unrecognized extended attribute
+../..\common/common.h(446) : error C2059: syntax error : '('
+D:\x264-060805-vc6\encoder\analyse.c(537) : error C2485: 'align' : unrecognized extended attribute
+D:\x264-060805-vc6\encoder\analyse.c(537) : error C2059: syntax error : '('
+D:\x264-060805-vc6\encoder\analyse.c(791) : error C2485: 'align' : unrecognized extended attribute
+D:\x264-060805-vc6\encoder\analyse.c(791) : error C2059: syntax error : '('
+D:\x264-060805-vc6\encoder\analyse.c(1163) : error C2485: 'align' : unrecognized extended attribute
+D:\x264-060805-vc6\encoder\analyse.c(1163) : error C2059: syntax error : '('
+D:\x264-060805-vc6\encoder\analyse.c(1164) : error C2485: 'align' : unrecognized extended attribute
+D:\x264-060805-vc6\encoder\analyse.c(1164) : error C2059: syntax error : '('
+D:\x264-060805-vc6\encoder\analyse.c(1616) : error C2485: 'align' : unrecognized extended attribute
+D:\x264-060805-vc6\encoder\analyse.c(1616) : error C2059: syntax error : '('
+D:\x264-060805-vc6\encoder\analyse.c(1951) : warning C4244: '=' : conversion from '__int64 ' to 'int ', possible loss of data
+D:\x264-060805-vc6\encoder\slicetype_decision.c(199) : error C2485: 'align' : unrecognized extended attribute
+D:\x264-060805-vc6\encoder\slicetype_decision.c(199) : error C2059: syntax error : '('
+cabac.c
+../..\common/common.h(359) : error C2485: 'align' : unrecognized extended attribute
+../..\common/common.h(359) : error C2059: syntax error : '('
+../..\common/common.h(360) : error C2485: 'align' : unrecognized extended attribute
+../..\common/common.h(360) : error C2059: syntax error : '('
+../..\common/common.h(362) : error C2485: 'align' : unrecognized extended attribute
+../..\common/common.h(362) : error C2059: syntax error : '('
+../..\common/common.h(365) : error C2485: 'align' : unrecognized extended attribute
+../..\common/common.h(365) : error C2059: syntax error : '('
+../..\common/common.h(366) : error C2485: 'align' : unrecognized extended attribute
+../..\common/common.h(366) : error C2059: syntax error : '('
+../..\common/common.h(445) : error C2485: 'align' : unrecognized extended attribute
+../..\common/common.h(445) : error C2059: syntax error : '('
+../..\common/common.h(446) : error C2485: 'align' : unrecognized extended attribute
+../..\common/common.h(446) : error C2059: syntax error : '('
+cavlc.c
+../..\common/common.h(359) : error C2485: 'align' : unrecognized extended attribute
+../..\common/common.h(359) : error C2059: syntax error : '('
+../..\common/common.h(360) : error C2485: 'align' : unrecognized extended attribute
+../..\common/common.h(360) : error C2059: syntax error : '('
+../..\common/common.h(362) : error C2485: 'align' : unrecognized extended attribute
+../..\common/common.h(362) : error C2059: syntax error : '('
+../..\common/common.h(365) : error C2485: 'align' : unrecognized extended attribute
+../..\common/common.h(365) : error C2059: syntax error : '('
+../..\common/common.h(366) : error C2485: 'align' : unrecognized extended attribute
+../..\common/common.h(366) : error C2059: syntax error : '('
+../..\common/common.h(445) : error C2485: 'align' : unrecognized extended attribute
+../..\common/common.h(445) : error C2059: syntax error : '('
+../..\common/common.h(446) : error C2485: 'align' : unrecognized extended attribute
+../..\common/common.h(446) : error C2059: syntax error : '('
+encoder.c
+../..\common/common.h(359) : error C2485: 'align' : unrecognized extended attribute
+../..\common/common.h(359) : error C2059: syntax error : '('
+../..\common/common.h(360) : error C2485: 'align' : unrecognized extended attribute
+../..\common/common.h(360) : error C2059: syntax error : '('
+../..\common/common.h(362) : error C2485: 'align' : unrecognized extended attribute
+../..\common/common.h(362) : error C2059: syntax error : '('
+../..\common/common.h(365) : error C2485: 'align' : unrecognized extended attribute
+../..\common/common.h(365) : error C2059: syntax error : '('
+../..\common/common.h(366) : error C2485: 'align' : unrecognized extended attribute
+../..\common/common.h(366) : error C2059: syntax error : '('
+../..\common/common.h(445) : error C2485: 'align' : unrecognized extended attribute
+../..\common/common.h(445) : error C2059: syntax error : '('
+../..\common/common.h(446) : error C2485: 'align' : unrecognized extended attribute
+../..\common/common.h(446) : error C2059: syntax error : '('
+D:\x264-060805-vc6\encoder\encoder.c(536) : warning C4244: '=' : conversion from 'double ' to 'int ', possible loss of data
+D:\x264-060805-vc6\encoder\encoder.c(1419) : warning C4244: 'initializing' : conversion from 'double ' to 'float ', possible loss of data
+D:\x264-060805-vc6\encoder\encoder.c(1442) : warning C4244: '=' : conversion from 'const double ' to 'float ', possible loss of data
+eval.c
+macroblock.c
+../..\common/common.h(359) : error C2485: 'align' : unrecognized extended attribute
+../..\common/common.h(359) : error C2059: syntax error : '('
+../..\common/common.h(360) : error C2485: 'align' : unrecognized extended attribute
+../..\common/common.h(360) : error C2059: syntax error : '('
+../..\common/common.h(362) : error C2485: 'align' : unrecognized extended attribute
+../..\common/common.h(362) : error C2059: syntax error : '('
+../..\common/common.h(365) : error C2485: 'align' : unrecognized extended attribute
+../..\common/common.h(365) : error C2059: syntax error : '('
+../..\common/common.h(366) : error C2485: 'align' : unrecognized extended attribute
+../..\common/common.h(366) : error C2059: syntax error : '('
+../..\common/common.h(445) : error C2485: 'align' : unrecognized extended attribute
+../..\common/common.h(445) : error C2059: syntax error : '('
+../..\common/common.h(446) : error C2485: 'align' : unrecognized extended attribute
+../..\common/common.h(446) : error C2059: syntax error : '('
+D:\x264-060805-vc6\encoder\macroblock.c(458) : error C2485: 'align' : unrecognized extended attribute
+D:\x264-060805-vc6\encoder\macroblock.c(458) : error C2059: syntax error : '('
+D:\x264-060805-vc6\encoder\macroblock.c(711) : error C2485: 'align' : unrecognized extended attribute
+D:\x264-060805-vc6\encoder\macroblock.c(711) : error C2059: syntax error : '('
+D:\x264-060805-vc6\encoder\macroblock.c(712) : error C2485: 'align' : unrecognized extended attribute
+D:\x264-060805-vc6\encoder\macroblock.c(712) : error C2059: syntax error : '('
+D:\x264-060805-vc6\encoder\macroblock.c(713) : error C2485: 'align' : unrecognized extended attribute
+D:\x264-060805-vc6\encoder\macroblock.c(713) : error C2059: syntax error : '('
+D:\x264-060805-vc6\encoder\macroblock.c(819) : warning C4018: '>' : signed/unsigned mismatch
+D:\x264-060805-vc6\encoder\macroblock.c(830) : warning C4244: '=' : conversion from 'unsigned __int64 ' to 'unsigned int ', possible loss of data
+me.c
+../..\common/common.h(359) : error C2485: 'align' : unrecognized extended attribute
+../..\common/common.h(359) : error C2059: syntax error : '('
+../..\common/common.h(360) : error C2485: 'align' : unrecognized extended attribute
+../..\common/common.h(360) : error C2059: syntax error : '('
+../..\common/common.h(362) : error C2485: 'align' : unrecognized extended attribute
+../..\common/common.h(362) : error C2059: syntax error : '('
+../..\common/common.h(365) : error C2485: 'align' : unrecognized extended attribute
+../..\common/common.h(365) : error C2059: syntax error : '('
+../..\common/common.h(366) : error C2485: 'align' : unrecognized extended attribute
+../..\common/common.h(366) : error C2059: syntax error : '('
+../..\common/common.h(445) : error C2485: 'align' : unrecognized extended attribute
+../..\common/common.h(445) : error C2059: syntax error : '('
+../..\common/common.h(446) : error C2485: 'align' : unrecognized extended attribute
+../..\common/common.h(446) : error C2059: syntax error : '('
+D:\x264-060805-vc6\encoder\me.c(162) : error C2485: 'align' : unrecognized extended attribute
+D:\x264-060805-vc6\encoder\me.c(162) : error C2059: syntax error : '('
+D:\x264-060805-vc6\encoder\me.c(583) : error C2485: 'align' : unrecognized extended attribute
+D:\x264-060805-vc6\encoder\me.c(583) : error C2059: syntax error : '('
+D:\x264-060805-vc6\encoder\me.c(731) : error C2485: 'align' : unrecognized extended attribute
+D:\x264-060805-vc6\encoder\me.c(731) : error C2059: syntax error : '('
+D:\x264-060805-vc6\encoder\me.c(732) : error C2485: 'align' : unrecognized extended attribute
+D:\x264-060805-vc6\encoder\me.c(732) : error C2059: syntax error : '('
+D:\x264-060805-vc6\encoder\me.c(733) : error C2485: 'align' : unrecognized extended attribute
+D:\x264-060805-vc6\encoder\me.c(733) : error C2059: syntax error : '('
+D:\x264-060805-vc6\encoder\me.c(820) : error C2485: 'align' : unrecognized extended attribute
+D:\x264-060805-vc6\encoder\me.c(820) : error C2059: syntax error : '('
+D:\x264-060805-vc6\encoder\me.c(847) : warning C4018: '<' : signed/unsigned mismatch
+D:\x264-060805-vc6\encoder\me.c(848) : warning C4018: '<=' : signed/unsigned mismatch
+ratecontrol.c
+../..\common/common.h(359) : error C2485: 'align' : unrecognized extended attribute
+../..\common/common.h(359) : error C2059: syntax error : '('
+../..\common/common.h(360) : error C2485: 'align' : unrecognized extended attribute
+../..\common/common.h(360) : error C2059: syntax error : '('
+../..\common/common.h(362) : error C2485: 'align' : unrecognized extended attribute
+../..\common/common.h(362) : error C2059: syntax error : '('
+../..\common/common.h(365) : error C2485: 'align' : unrecognized extended attribute
+../..\common/common.h(365) : error C2059: syntax error : '('
+../..\common/common.h(366) : error C2485: 'align' : unrecognized extended attribute
+../..\common/common.h(366) : error C2059: syntax error : '('
+../..\common/common.h(445) : error C2485: 'align' : unrecognized extended attribute
+../..\common/common.h(445) : error C2059: syntax error : '('
+../..\common/common.h(446) : error C2485: 'align' : unrecognized extended attribute
+../..\common/common.h(446) : error C2059: syntax error : '('
+D:\x264-060805-vc6\encoder\ratecontrol.c(240) : warning C4244: '=' : conversion from 'double ' to 'int ', possible loss of data
+D:\x264-060805-vc6\encoder\ratecontrol.c(283) : warning C4244: 'function' : conversion from 'double ' to 'int ', possible loss of data
+D:\x264-060805-vc6\encoder\ratecontrol.c(284) : warning C4244: 'function' : conversion from 'double ' to 'int ', possible loss of data
+D:\x264-060805-vc6\encoder\ratecontrol.c(385) : warning C4244: '=' : conversion from 'double ' to 'float ', possible loss of data
+D:\x264-060805-vc6\encoder\ratecontrol.c(432) : warning C4244: '=' : conversion from 'double ' to 'float ', possible loss of data
+D:\x264-060805-vc6\encoder\ratecontrol.c(689) : warning C4244: 'initializing' : conversion from 'double ' to 'int ', possible loss of data
+D:\x264-060805-vc6\encoder\ratecontrol.c(693) : warning C4244: 'initializing' : conversion from 'double ' to 'float ', possible loss of data
+D:\x264-060805-vc6\encoder\ratecontrol.c(700) : warning C4244: '=' : conversion from 'double ' to 'int ', possible loss of data
+D:\x264-060805-vc6\encoder\ratecontrol.c(709) : warning C4244: '=' : conversion from 'double ' to 'int ', possible loss of data
+D:\x264-060805-vc6\encoder\ratecontrol.c(793) : warning C4244: '=' : conversion from 'int ' to 'float ', possible loss of data
+D:\x264-060805-vc6\encoder\ratecontrol.c(944) : warning C4013: '_finite' undefined; assuming extern returning int
+D:\x264-060805-vc6\encoder\ratecontrol.c(1028) : warning C4244: 'initializing' : conversion from 'double ' to 'float ', possible loss of data
+D:\x264-060805-vc6\encoder\ratecontrol.c(1063) : warning C4244: 'function' : conversion from 'double ' to 'int ', possible loss of data
+D:\x264-060805-vc6\encoder\ratecontrol.c(1063) : warning C4244: 'function' : conversion from 'double ' to 'int ', possible loss of data
+D:\x264-060805-vc6\encoder\ratecontrol.c(1083) : warning C4244: 'function' : conversion from 'double ' to 'float ', possible loss of data
+D:\x264-060805-vc6\encoder\ratecontrol.c(1093) : warning C4244: 'function' : conversion from 'double ' to 'float ', possible loss of data
+D:\x264-060805-vc6\encoder\ratecontrol.c(1093) : warning C4305: 'function' : truncation from 'const double ' to 'float '
+D:\x264-060805-vc6\encoder\ratecontrol.c(1135) : warning C4244: 'function' : conversion from 'double ' to 'float ', possible loss of data
+D:\x264-060805-vc6\encoder\ratecontrol.c(1135) : warning C4244: 'function' : conversion from 'double ' to 'float ', possible loss of data
+D:\x264-060805-vc6\encoder\ratecontrol.c(1135) : warning C4244: 'function' : conversion from 'double ' to 'float ', possible loss of data
+D:\x264-060805-vc6\encoder\ratecontrol.c(1173) : warning C4244: '-=' : conversion from 'double ' to 'float ', possible loss of data
+D:\x264-060805-vc6\encoder\ratecontrol.c(1175) : warning C4244: '-=' : conversion from 'double ' to 'float ', possible loss of data
+D:\x264-060805-vc6\encoder\ratecontrol.c(1178) : warning C4244: '=' : conversion from 'double ' to 'float ', possible loss of data
+D:\x264-060805-vc6\encoder\ratecontrol.c(1187) : warning C4244: '+=' : conversion from 'double ' to 'float ', possible loss of data
+D:\x264-060805-vc6\encoder\ratecontrol.c(1189) : warning C4244: '+=' : conversion from 'double ' to 'float ', possible loss of data
+D:\x264-060805-vc6\encoder\ratecontrol.c(1192) : warning C4244: 'return' : conversion from 'double ' to 'float ', possible loss of data
+D:\x264-060805-vc6\encoder\ratecontrol.c(1202) : warning C4244: 'function' : conversion from 'double ' to 'float ', possible loss of data
+D:\x264-060805-vc6\encoder\ratecontrol.c(1208) : warning C4244: 'function' : conversion from 'double ' to 'float ', possible loss of data
+D:\x264-060805-vc6\encoder\ratecontrol.c(1209) : warning C4244: '*=' : conversion from 'double ' to 'float ', possible loss of data
+D:\x264-060805-vc6\encoder\ratecontrol.c(1211) : warning C4244: 'function' : conversion from 'double ' to 'float ', possible loss of data
+D:\x264-060805-vc6\encoder\ratecontrol.c(1211) : warning C4244: 'function' : conversion from 'double ' to 'float ', possible loss of data
+D:\x264-060805-vc6\encoder\ratecontrol.c(1234) : warning C4244: '=' : conversion from 'double ' to 'float ', possible loss of data
+D:\x264-060805-vc6\encoder\ratecontrol.c(1245) : warning C4244: '=' : conversion from 'double ' to 'float ', possible loss of data
+D:\x264-060805-vc6\encoder\ratecontrol.c(1250) : warning C4244: '=' : conversion from 'double ' to 'float ', possible loss of data
+D:\x264-060805-vc6\encoder\ratecontrol.c(1254) : warning C4244: 'function' : conversion from 'double ' to 'float ', possible loss of data
+D:\x264-060805-vc6\encoder\ratecontrol.c(1255) : warning C4244: '*=' : conversion from 'double ' to 'float ', possible loss of data
+D:\x264-060805-vc6\encoder\ratecontrol.c(1262) : warning C4244: '=' : conversion from 'double ' to 'float ', possible loss of data
+D:\x264-060805-vc6\encoder\ratecontrol.c(1263) : warning C4244: '/=' : conversion from 'double ' to 'float ', possible loss of data
+D:\x264-060805-vc6\encoder\ratecontrol.c(1276) : warning C4244: 'function' : conversion from 'double ' to 'float ', possible loss of data
+D:\x264-060805-vc6\encoder\ratecontrol.c(1276) : warning C4244: 'function' : conversion from 'double ' to 'float ', possible loss of data
+D:\x264-060805-vc6\encoder\ratecontrol.c(1280) : warning C4244: '=' : conversion from 'double ' to 'float ', possible loss of data
+D:\x264-060805-vc6\encoder\ratecontrol.c(1284) : warning C4244: '=' : conversion from 'double ' to 'float ', possible loss of data
+D:\x264-060805-vc6\encoder\ratecontrol.c(1326) : warning C4244: 'function' : conversion from 'double ' to 'int ', possible loss of data
+D:\x264-060805-vc6\encoder\ratecontrol.c(1393) : warning C4244: '=' : conversion from 'double ' to 'float ', possible loss of data
+D:\x264-060805-vc6\encoder\ratecontrol.c(1460) : warning C4244: '=' : conversion from 'double ' to 'float ', possible loss of data
+D:\x264-060805-vc6\encoder\ratecontrol.c(1464) : warning C4244: '=' : conversion from 'double ' to 'unsigned __int64 ', possible loss of data
+D:\x264-060805-vc6\encoder\ratecontrol.c(1466) : warning C4244: 'function' : conversion from 'double ' to 'int ', possible loss of data
+set.c
+../..\common/common.h(359) : error C2485: 'align' : unrecognized extended attribute
+../..\common/common.h(359) : error C2059: syntax error : '('
+../..\common/common.h(360) : error C2485: 'align' : unrecognized extended attribute
+../..\common/common.h(360) : error C2059: syntax error : '('
+../..\common/common.h(362) : error C2485: 'align' : unrecognized extended attribute
+../..\common/common.h(362) : error C2059: syntax error : '('
+../..\common/common.h(365) : error C2485: 'align' : unrecognized extended attribute
+../..\common/common.h(365) : error C2059: syntax error : '('
+../..\common/common.h(366) : error C2485: 'align' : unrecognized extended attribute
+../..\common/common.h(366) : error C2059: syntax error : '('
+../..\common/common.h(445) : error C2485: 'align' : unrecognized extended attribute
+../..\common/common.h(445) : error C2059: syntax error : '('
+../..\common/common.h(446) : error C2485: 'align' : unrecognized extended attribute
+../..\common/common.h(446) : error C2059: syntax error : '('
+Generating Code...
+执行 cl.exe 时出错.
+Creating temporary file "C:\DOCUME~1\ADMINI~1\LOCALS~1\Temp\RSP61.tmp" with contents
+[
+/nologo /o"Debug/libx264.bsc" 
+".\obj\enc_debug\analyse.sbr"
+".\obj\enc_debug\cabac.sbr"
+".\obj\enc_debug\cavlc.sbr"
+".\obj\enc_debug\encoder.sbr"
+".\obj\enc_debug\eval.sbr"
+".\obj\enc_debug\macroblock.sbr"
+".\obj\enc_debug\me.sbr"
+".\obj\enc_debug\ratecontrol.sbr"
+".\obj\enc_debug\set.sbr"
+".\Debug\predict-c.sbr"
+".\obj\core_debug\cabac.sbr"
+".\obj\core_debug\common.sbr"
+".\obj\core_debug\cpu.sbr"
+".\Debug\csp.sbr"
+".\obj\core_debug\dct.sbr"
+".\obj\core_debug\frame.sbr"
+".\obj\core_debug\macroblock.sbr"
+".\obj\core_debug\mc-c.sbr"
+".\obj\core_debug\mc.sbr"
+".\obj\core_debug\mdate.sbr"
+".\obj\core_debug\pixel.sbr"
+".\obj\core_debug\predict.sbr"
+".\Debug\quant.sbr"
+".\Debug\set.sbr"
+".\obj\util_debug\getopt.sbr"]
+Creating command line "bscmake.exe @C:\DOCUME~1\ADMINI~1\LOCALS~1\Temp\RSP61.tmp"
+Creating browse info file...
+BSCMAKE: error BK1506 : cannot open file '.\Debug\predict-c.sbr': No such file or directory
+执行 bscmake.exe 时出错.
+<h3>Output Window</h3>
+
+
+
+<h3>Results</h3>
+libx264.lib - 1 error(s), 0 warning(s)
+</pre>
+</body>
+</html>

@@ -317,21 +317,21 @@ static void predict_16x16_mode_available( unsigned int i_neighbour, int *mode, i
     }
     else if( i_neighbour & MB_LEFT )
     {
-        /* left available*/
+        /* left available(可用的)*/
         *mode++ = I_PRED_16x16_DC_LEFT;
         *mode++ = I_PRED_16x16_H;
         *pi_count = 2;
     }
     else if( i_neighbour & MB_TOP )
     {
-        /* top available*/
+        /* top available(可用的)*/
         *mode++ = I_PRED_16x16_DC_TOP;
         *mode++ = I_PRED_16x16_V;
         *pi_count = 2;
     }
-    else
+    else 
     {
-        /* none avaible */
+        /* none avaible(可用) 意思是没有可用的，直接以128为预测值 毕厚杰：Page203*/
         *mode = I_PRED_16x16_DC_128;
         *pi_count = 1;
     }
@@ -633,7 +633,7 @@ static void x264_mb_analyse_intra( x264_t *h, x264_mb_analysis_t *a, int i_satd_
             predict_4x4_mode_available( h->mb.i_neighbour4[idx], predict_mode, &i_max );
 
             if( (h->mb.i_neighbour4[idx] & (MB_TOPRIGHT|MB_TOP)) == MB_TOP )
-                /* emulate missing topright samples */
+                /* emulate(模仿) missing(缺失的) topright(右上方) samples(样本) */
                 *(uint32_t*) &p_dst_by[4 - FDEC_STRIDE] = p_dst_by[3 - FDEC_STRIDE] * 0x01010101U;
 
             if( b_merged_satd && i_max >= 6 )
@@ -756,7 +756,7 @@ static void x264_intra_rd_refine( x264_t *h, x264_mb_analysis_t *a )
             predict_4x4_mode_available( h->mb.i_neighbour4[idx], predict_mode, &i_max );
 
             if( (h->mb.i_neighbour4[idx] & (MB_TOPRIGHT|MB_TOP)) == MB_TOP )
-                /* emulate missing topright samples */
+                /* emulate(模仿) missing(缺掉的) topright(右上方) samples(样本) */
                 *(uint32_t*) &p_dst_by[4 - FDEC_STRIDE] = p_dst_by[3 - FDEC_STRIDE] * 0x01010101U;
 
             for( i = 0; i < i_max; i++ )
@@ -1962,7 +1962,7 @@ static inline void x264_mb_analyse_transform_rd( x264_t *h, x264_mb_analysis_t *
 
 
 /*****************************************************************************
- * x264_macroblock_analyse:
+ * x264_macroblock_analyse:  analyse：解析；macroblock：宏模块
  *****************************************************************************/
 void x264_macroblock_analyse( x264_t *h )
 {

@@ -19,6 +19,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111, USA.
+   CABAC:基于上下文自适应二进制算术熵编码
  *****************************************************************************/
 
 #ifndef _CABAC_H
@@ -30,11 +31,11 @@ typedef struct
     /* #436-459 are for interlacing, so are omitted for now */
     uint8_t state[436];
 
-    /* state */
+    /* state 状态*/
     int i_low;
     int i_range;
 
-    /* bit stream */
+    /* bit stream 比特流*/
     int i_bits_outstanding;
     int f8_bits_encoded; // only if using x264_cabac_size_decision()
     bs_t *s;

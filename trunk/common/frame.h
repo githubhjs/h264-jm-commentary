@@ -31,36 +31,38 @@ typedef struct
     int     i_type;
     int     i_qpplus1;
     int64_t i_pts;
-    int     i_frame;    /* Presentation frame number */
-    int     i_frame_num; /* Coded frame number */
+    int     i_frame;    /* Presentation(提示) frame number */
+    int     i_frame_num; /* Coded(编码的) frame number */
     int     b_kept_as_ref;
     float   f_qp_avg;
 
     /* YUV buffer */
     int     i_plane;
-    int     i_stride[4];
+    int     i_stride[4];//步长
     int     i_lines[4];
     int     i_stride_lowres;
     int     i_lines_lowres;
-    uint8_t *plane[4];
-    uint8_t *filtered[4]; /* plane[0], H, V, HV */
+    uint8_t *plane[4];//面数，一般都有3个YUV
+    uint8_t *filtered[4]; /* plane[0], H, V, HV */ //0：滤波后的整像素点平面;1：滤波后的整像素点右边 1/2 像素点平面;2：滤波后的整像素点下边 1/2 像素点平面;3：滤波后的整像素点右下 1/2 像素点平面
+
+
     uint8_t *lowres[4]; /* half-size copy of input frame: Orig, H, V, HV */
     uint16_t *integral;
 
-    /* for unrestricted mv we allocate more data than needed
+    /* for unrestricted(无限制的) mv we allocate(分配) more data than needed
      * allocated data are stored in buffer */
     void    *buffer[12];
 
-    /* motion data */
+    /* motion(运动) data(数据) */
     int8_t  *mb_type;
     int16_t (*mv[2])[2];
     int8_t  *ref[2];
     int     i_ref[2];
     int     ref_poc[2][16];
 
-    /* for adaptive B-frame decision.
-     * contains the SATD cost of the lowres frame encoded in various modes
-     * FIXME: how big an array do we need? */
+    /* for adaptive(自适应) B-frame decision(决策).
+     * contains(包含) the SATD cost(成本) of the lowres frame encoded in various(各种各样的) modes
+     * FIXME: 在需要时如何扩大一个数组how big an array do we need? */
     int     i_cost_est[X264_BFRAME_MAX+2][X264_BFRAME_MAX+2];
     int     i_satd; // the i_cost_est of the selected frametype
     int     i_intra_mbs[X264_BFRAME_MAX+2];
@@ -69,7 +71,7 @@ typedef struct
     int     *i_row_bits;
     int     *i_row_qp;
 
-} x264_frame_t;
+} x264_frame_t;//x264_picture_t和x264_frame_t的区别在于，前者是说明一个视频序列中每帧的特点，后者存放每帧实际的象素值。要注意区分
 
 typedef void (*x264_deblock_inter_t)( uint8_t *pix, int stride, int alpha, int beta, int8_t *tc0 );
 typedef void (*x264_deblock_intra_t)( uint8_t *pix, int stride, int alpha, int beta );
@@ -88,12 +90,12 @@ typedef struct
 x264_frame_t *x264_frame_new( x264_t *h );
 void          x264_frame_delete( x264_frame_t *frame );
 
-void          x264_frame_copy_picture( x264_t *h, x264_frame_t *dst, x264_picture_t *src );
+void          x264_frame_copy_picture( x264_t *h, x264_frame_t *dst, x264_picture_t *src );/*图像到帧*/
 
-void          x264_frame_expand_border( x264_frame_t *frame );
+void          x264_frame_expand_border( x264_frame_t *frame );/* 扩展边 */
 void          x264_frame_expand_border_filtered( x264_frame_t *frame );
 void          x264_frame_expand_border_lowres( x264_frame_t *frame );
-void          x264_frame_expand_border_mod16( x264_t *h, x264_frame_t *frame );
+void          x264_frame_expand_border_mod16( x264_t *h, x264_frame_t *frame );/* 扩展成16的倍数 */
 
 void          x264_frame_deblocking_filter( x264_t *h, int i_slice_type );
 

@@ -1,5 +1,6 @@
 /*****************************************************************************
  * avc2avi.c: raw h264 -> AVI
+ * avc2avi.c: 原始h264 到 AVI
  *****************************************************************************
  * Copyright (C) 2004 Laurent Aimar
  * $Id: avc2avi.c,v 1.1 2004/06/03 19:27:08 fenrir Exp $
@@ -19,6 +20,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111, USA.
+ * 该程序包提供了"***.264"格式的文件转换为"***.avi"格式视频的源代码。 "***.264"是未经封装的H.264格式的视频文件，经过该程序添加avi封装后，形成"***.avi"格式的视频文件，从而可以用普通的播放器进行播放。 通过该源代码还可以学习到avi格式封装的实现方法。
  *****************************************************************************/
 
 #include <stdlib.h>
@@ -592,7 +594,9 @@ void h264_parser_parse( h264_t *h, nal_t *nal, int *pb_nal_start )
     h->i_ref_idc = nal->i_ref_idc;
 }
 
-
+/*
+解析NAL
+ */
 static int  ParseNAL( nal_t *nal, avi_t *a, h264_t *h, int *pb_slice )
 {
     int b_flush = 0;
@@ -665,10 +669,13 @@ void avi_write_fourcc( avi_t *a, char fcc[4] )
 /* Flags in avih */
 #define AVIF_HASINDEX       0x00000010  // Index at end of file?
 #define AVIF_ISINTERLEAVED  0x00000100
-#define AVIF_TRUSTCKTYPE    0x00000800  // Use CKType to find key frames?
+#define AVIF_TRUSTCKTYPE    0x00000800  // Use CKType to find key frames?使用CKType查找关键帧?
 
-#define AVIIF_KEYFRAME      0x00000010L /* this frame is a key frame.*/
+#define AVIIF_KEYFRAME      0x00000010L /* this frame is a key frame.这个帧是一个关键帧*/
 
+/*
+avi_写_头部
+*/
 void avi_write_header( avi_t *a )
 {
     avi_write_fourcc( a, "RIFF" );
@@ -825,7 +832,7 @@ void avi_end( avi_t *a )
 }
 
 /*****************************************************************************
- * nal:
+ * nal:解码nal
  *****************************************************************************/
 int nal_decode( nal_t *nal, void *p_data, int i_data )
 {

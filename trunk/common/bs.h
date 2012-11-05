@@ -86,7 +86,7 @@ static inline uint32_t bs_read( bs_t *s, int i_count )
         }
         else
         {
-            /* less in the buffer than requested */
+            /* less(较少的) in the buffer than requested */
            i_result |= (*s->p&i_mask[s->i_left]) << -i_shr;
            i_count  -= s->i_left;
            s->p++;
@@ -126,7 +126,7 @@ static inline uint32_t bs_show( bs_t *s, int i_count )
     return 0;
 }
 
-/* TODO optimize */
+/* TODO optimize(使最优化) */
 static inline void bs_skip( bs_t *s, int i_count )
 {
     s->i_left -= i_count;
@@ -138,7 +138,7 @@ static inline void bs_skip( bs_t *s, int i_count )
     }
 }
 
-
+//毕：第145页，ue(v)；无符号指数Golomb熵编码
 static inline int bs_read_ue( bs_t *s )
 {
     int i = 0;
@@ -149,6 +149,8 @@ static inline int bs_read_ue( bs_t *s )
     }
     return( ( 1 << i) - 1 + bs_read( s, i ) );
 }
+
+//毕：第145页，se(v)；有符号指数Golomb熵编码
 static inline int bs_read_se( bs_t *s )
 {
     int val = bs_read_ue( s );
@@ -156,6 +158,7 @@ static inline int bs_read_se( bs_t *s )
     return val&0x01 ? (val+1)/2 : -(val/2);
 }
 
+//毕：第145页，te(v)：截断指数Golomb熵编码
 static inline int bs_read_te( bs_t *s, int x )
 {
     if( x == 1 )
@@ -291,7 +294,7 @@ static inline void bs_write_te( bs_t *s, int x, int val )
         bs_write_ue( s, val );
     }
 }
-
+//
 static inline void bs_rbsp_trailing( bs_t *s )
 {
     bs_write1( s, 1 );
@@ -301,7 +304,9 @@ static inline void bs_rbsp_trailing( bs_t *s )
     }
 }
 
-static inline int bs_size_ue( unsigned int val )
+//毕：145页，ue(v):无符号指数熵编码
+
+static inline int bs_size_ue( unsigned int val )//
 {
     static const int i_size0_254[255] =
     {

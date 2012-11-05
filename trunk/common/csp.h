@@ -26,7 +26,7 @@
 
 typedef struct
 {
-    void (*i420)( x264_frame_t *, x264_image_t *, int i_width, int i_height );
+    void (*i420)( x264_frame_t *, x264_image_t *, int i_width, int i_height );//º¯ÊýÖ¸Õë
     void (*i422)( x264_frame_t *, x264_image_t *, int i_width, int i_height );
     void (*i444)( x264_frame_t *, x264_image_t *, int i_width, int i_height );
     void (*yv12)( x264_frame_t *, x264_image_t *, int i_width, int i_height );

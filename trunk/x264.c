@@ -46,8 +46,8 @@
 #include "x264.h"
 #include "muxers.h"
 
-#define DATA_MAX 3000000
-uint8_t data[DATA_MAX];
+#define DATA_MAX 3000000//数据的最大长度
+uint8_t data[DATA_MAX];//实际存放数据的数组
 
 /* Ctrl-C handler */
 static int     b_ctrl_c = 0;
@@ -60,20 +60,21 @@ static void    SigIntHandler( int a )
 }
 
 typedef struct {
-    int b_progress;
-    int i_seek;
-    hnd_t hin;
-    hnd_t hout;
-    FILE *qpfile;
-} cli_opt_t;
+    int b_progress;		//用来控制是否显示编码进度的一个东西。取值为0,1
+    int i_seek;			//表示开始从哪一帧编码
+    hnd_t hin;			//Hin 指向输入yuv文件的指针	//void *在C语言里空指针是有几个特性的，他是一个一般化指针，可以指向任何一种类型，但却不能解引用，需要解引用的时候，需要进行强制转换。采用空指针的策略，应该是为了声明变量的简便和统一。
+    hnd_t hout;			//Hout 指向编码过后生成的文件的指针
+    FILE *qpfile;		//Qpfile 是一个指向文件类型的指针，他是文本文件，其每一行的格式是framenum frametype QP,用于强制指定某些帧或者全部帧的帧类型和QP(quant param量化参数)的值
 
-/* input file operation function pointers */
+} cli_opt_t;	/* 此结构体是记录一些与编码关系较小的设置信息的 */
+
+/* input(输入) file(文件) operation(操作) function(函数) pointers(指针) */
 int (*p_open_infile)( char *psz_filename, hnd_t *p_handle, x264_param_t *p_param );
 int (*p_get_frame_total)( hnd_t handle );
 int (*p_read_frame)( x264_picture_t *p_pic, hnd_t handle, int i_frame );
 int (*p_close_infile)( hnd_t handle );
 
-/* output file operation function pointers */
+/* 输出文件操作的函数指针 output file operation function pointers */
 static int (*p_open_outfile)( char *psz_filename, hnd_t *p_handle );
 static int (*p_set_outfile_param)( hnd_t handle, x264_param_t *p_param );
 static int (*p_write_nalu)( hnd_t handle, uint8_t *p_nal, int i_size );
@@ -86,31 +87,36 @@ static int  Encode( x264_param_t *param, cli_opt_t *opt );
 
 
 /****************************************************************************
- * main:
+ * main: 
  ****************************************************************************/
 int main( int argc, char **argv )
 {
+	//定义两个结构体
     x264_param_t param;
-    cli_opt_t opt;
+    cli_opt_t opt;	/*一点设置*/
 
-#ifdef _MSC_VER
-    _setmode(_fileno(stdin), _O_BINARY);
+	#ifdef _MSC_VER//stdin在STDIO.H，是系统定义的
+    _setmode(_fileno(stdin), _O_BINARY);//_setmode(_fileno(stdin), _O_BINARY)功能是将stdin流(或其他文件流）从文本模式   <--切换-->   二进制模式 就是stdin流(或其他文件流）从文本模式   <--切换-->   二进制模式
     _setmode(_fileno(stdout), _O_BINARY);
-#endif
+	#endif
 
-    x264_param_default( &param );
+	//对编码器参数进行设定，初始化结构体对象
+    x264_param_default( &param );	//(common/common.c)
 
-    /* Parse command line */
-    if( Parse( argc, argv, &param, &opt ) < 0 )
+    /* Parse command line (解析命令行,完成文件打开)*/
+    if( Parse( argc, argv, &param, &opt ) < 0 )	/* 就是把用户通过命令行提供的参数保存到两个结构体中，未提供的参数还以x264_param_default函数设置的值为准 */
         return -1;
 
-    /* Control-C handler */
-    signal( SIGINT, SigIntHandler );
-
-    return Encode( &param, &opt );
+    /* 用函数signal注册一个信号捕捉函数 */
+    signal( SIGINT/*要捕捉的信号*/, SigIntHandler/*信号捕捉函数*/ );//用函数signal注册一个信号捕捉函数，第1个参数signum表示要捕捉的信号，第2个参数是个函数指针，表示要对该信号进行捕捉的函数，该参数也可以是SIG_DEF(表示交由系统缺省处理，相当于白注册了)或SIG_IGN(表示忽略掉该信号而不做任何处理)。signal如果调用成功，返回以前该信号的处理函数的地址，否则返回 SIG_ERR。
+									//sighandler_t是信号捕捉函数，由signal函数注册，注册以后，在整个进程运行过程中均有效，并且对不同的信号可以注册同一个信号捕捉函数。该函数只有一个参数，表示信号值。
+	/* 开始编码*/
+    return Encode( &param, &opt );//把两个参数提供给Encode，而它们已经保存上了命令行的参数,此函数在 x264.c 中定义 
+									//Encode内部循环调用Encode_frame对帧编码
 }
 
-static char const *strtable_lookup( const char * const table[], int index )
+/* 取字符串的第i个字符 */
+static char const *strtable_lookup( const char * const table[], int index )//static静态函数，只在定义它的文件内有效
 {
     int i = 0; while( table[i] ) i++;
     return ( ( index >= 0 && index < i ) ? table[ index ] : "???" );
@@ -308,36 +314,37 @@ static int  Parse( int argc, char **argv,
     int b_y4m = 0;
     int b_thread_input = 0;
 
-    memset( opt, 0, sizeof(cli_opt_t) );
+    memset( opt, 0, sizeof(cli_opt_t) );/* 内存块设置00000 */
 
     /* Default input file driver */
-    p_open_infile = open_file_yuv;
-    p_get_frame_total = get_frame_total_yuv;
-    p_read_frame = read_frame_yuv;
-    p_close_infile = close_file_yuv;
+    p_open_infile = open_file_yuv;/*函数指针赋值*/
+    p_get_frame_total = get_frame_total_yuv;//p_get_frame_total是一个函数指针，右侧的get_frame_total_yuv是一个函数名称；//muxers.c(82):int get_frame_total_yuv( hnd_t handle )
+    p_read_frame = read_frame_yuv;/*函数指针赋值*/
+    p_close_infile = close_file_yuv;/*函数指针赋值*/
 
     /* Default output file driver */
-    p_open_outfile = open_file_bsf;
-    p_set_outfile_param = set_param_bsf;
-    p_write_nalu = write_nalu_bsf;
-    p_set_eop = set_eop_bsf;
-    p_close_outfile = close_file_bsf;
+    p_open_outfile = open_file_bsf;/*函数指针赋值*/
+    p_set_outfile_param = set_param_bsf;/*函数指针赋值*/
+    p_write_nalu = write_nalu_bsf;/*函数指针赋值*/
+    p_set_eop = set_eop_bsf;/*函数指针赋值*/
+    p_close_outfile = close_file_bsf;/*函数指针赋值*/
 
     /* Parse command line options */
-    for( ;; )
+    for( ;; )//for循环中的"初始化"、"条件表达式"和"增量"都是选择项, 即可以缺省, 但";"不能缺省。省略了初始化, 表示不对循环控制变量赋初值。 省略了条件表达式, 则不做其它处理时便成为死循环。省略了增量, 则不对循环控制变量进行操作, 这时可在语句体中加入修改循环控制变量的语句。
     {
         int b_error = 0;
         int long_options_index = -1;
 
-#define OPT_FRAMES 256
-#define OPT_SEEK 257
-#define OPT_QPFILE 258
-#define OPT_THREAD_INPUT 259
-#define OPT_QUIET 260
-#define OPT_PROGRESS 261
-#define OPT_VISUALIZE 262
-#define OPT_LONGHELP 263
+		#define OPT_FRAMES 256
+		#define OPT_SEEK 257
+		#define OPT_QPFILE 258
+		#define OPT_THREAD_INPUT 259
+		#define OPT_QUIET 260
+		#define OPT_PROGRESS 261
+		#define OPT_VISUALIZE 262
+		#define OPT_LONGHELP 263
 
+		/*option类型的结构体数组*/ /*struct定义的是一种类型，并不分配内存空间*/
         static struct option long_options[] =
         {
             { "help",    no_argument,       NULL, 'h' },
@@ -357,7 +364,7 @@ static int  Parse( int argc, char **argv,
             { "qp",      required_argument, NULL, 'q' },
             { "qpmin",   required_argument, NULL, 0 },
             { "qpmax",   required_argument, NULL, 0 },
-            { "qpstep",  required_argument, NULL, 0 },
+            { "qpstep",  required_argument, NULL, 0 },//argument:参数
             { "crf",     required_argument, NULL, 0 },
             { "ref",     required_argument, NULL, 'r' },
             { "no-asm",  no_argument,       NULL, 0 },
@@ -429,51 +436,55 @@ static int  Parse( int argc, char **argv,
         };
 
         int c = getopt_long( argc, argv, "8A:B:b:f:hI:i:m:o:p:q:r:t:Vvw",
-                             long_options, &long_options_index);
+                             long_options, &long_options_index);//解析入口地址的向量，最后c 得到的是 运行参数（“-o test.264 foreman.yuv  352x288”）中前面“-o”中“o”的ASCII值 即 c = 111 。可通过VC Debug查看。 getopt_long() 定义在getopt.c中。其中用到 getopt_internal(nargc, nargv, options)也定义在extras/getopt.c中，解析入口地址向量。
 
-        if( c == -1 )
+
+        if( c == -1 )//
         {
-            break;
+            break;//退出for
         }
 
         switch( c )
         {
             case 'h':
-                Help( &defaults, 0 );
-                exit(0);
+                Help( &defaults, 0 );//显示帮助信息
+                exit(0);//exit函数中的实参是返回给操作系统，表示程序是成功运行结束还是失败运行结束。对于程序本身的使用没有什么太实际的差别。习惯上，一般使用正常结束程序exit(0)。exit(非0）：非正常结束程序运行
             case OPT_LONGHELP:
-                Help( &defaults, 1 );
-                exit(0);
+                Help( &defaults, 1 );//显示帮助信息
+                exit(0);//STDLIB.H里声明
             case 'V':
-#ifdef X264_POINTVER
-                printf( "x264 "X264_POINTVER"\n" );
-#else
-                printf( "x264 0.%d.X\n", X264_BUILD );
-#endif
+				#ifdef X264_POINTVER
+					printf( "x264 "X264_POINTVER"\n" );//产生格式化输出的函数(定义在 stdio.h 中)。
+				#else
+					printf( "x264 0.%d.X\n", X264_BUILD );
+				#endif
                 exit(0);
-            case OPT_FRAMES:
-                param->i_frame_total = atoi( optarg );
+            case OPT_FRAMES://256	//--frames <整数> 最大编码帧数
+                param->i_frame_total = atoi( optarg );//atoi(const char *);把字符串转换成整型数 函数说明: 参数nptr字符串，如果第一个非空格字符不存在或者不是数字也不是正负号则返回零，否则开始做类型转换，之后检测到非数字或结束符 \0 时停止转换，返回整型数。
                 break;
-            case OPT_SEEK:
+            case OPT_SEEK://命令行：--seek <整数> 设定起始帧  //
+
                 opt->i_seek = atoi( optarg );
                 break;
-            case 'o':
+            case 'o'://对运行参数（“-o test.264 foreman.yuv  352x288”）由c = 111 ,程序跳转到case 'o'，执行p_open_outfile ( optarg, &opt->hout )，即进入函数open_file_bsf（），功能为以二进制写的方式打开输出文件test.264，函数在nuxers.c中
+				//mp4文件
                 if( !strncasecmp(optarg + strlen(optarg) - 4, ".mp4", 4) )
                 {
-#ifdef MP4_OUTPUT
-                    p_open_outfile = open_file_mp4;
-                    p_write_nalu = write_nalu_mp4;
-                    p_set_outfile_param = set_param_mp4;
-                    p_set_eop = set_eop_mp4;
-                    p_close_outfile = close_file_mp4;
-#else
-                    fprintf( stderr, "x264 [error]: not compiled with MP4 output support\n" );
-                    return -1;
-#endif
+					#ifdef MP4_OUTPUT
+						p_open_outfile = open_file_mp4;//muxers.c
+						p_write_nalu = write_nalu_mp4;
+						p_set_outfile_param = set_param_mp4;
+						p_set_eop = set_eop_mp4;
+						p_close_outfile = close_file_mp4;
+					#else
+						fprintf( stderr, "x264 [error]: not compiled with MP4 output support\n" );
+						return -1;
+					#endif
                 }
-                else if( !strncasecmp(optarg + strlen(optarg) - 4, ".mkv", 4) )
-                {
-                    p_open_outfile = open_file_mkv;
+				//MKV文件
+                else if( !strncasecmp(optarg + strlen(optarg) - 4, ".mkv", 4) )//int strncasecmp(const char *s1, const char *s2, size_t n) 用来比较参数s1和s2字符串前n个字符，比较时会自动忽略大小写的差异, 若参数s1和s2字符串相同则返回0; s1若大于s2则返回大于0的值; s1若小于s2则返回小于0的值
+                {	
+                    p_open_outfile = open_file_mkv;//muxers.c
                     p_write_nalu = write_nalu_mkv;
                     p_set_outfile_param = set_param_mkv;
                     p_set_eop = set_eop_mkv;
@@ -511,12 +522,12 @@ static int  Parse( int argc, char **argv,
                 opt->b_progress = 1;
                 break;
             case OPT_VISUALIZE:
-#ifdef VISUALIZE
-                param->b_visualize = 1;
-                b_exit_on_ctrl_c = 1;
-#else
-                fprintf( stderr, "x264 [warning]: not compiled with visualization support\n" );
-#endif
+				#ifdef VISUALIZE
+					param->b_visualize = 1;
+					b_exit_on_ctrl_c = 1;
+				#else
+					fprintf( stderr, "x264 [warning]: not compiled with visualization support\n" );
+				#endif
                 break;
             default:
             {
@@ -557,7 +568,7 @@ static int  Parse( int argc, char **argv,
     }
     psz_filename = argv[optind++];
 
-    /* check demuxer type */
+    /* check demuxer type (muxer是合并将视频文件、音频文件和字幕文件合并为某一个视频格式。如，可将a.avi, a.mp3, a.srt用muxer合并为mkv格式的视频文件。demuxer是拆分这些文件的。)*/
     psz = psz_filename + strlen(psz_filename) - 1;
     while( psz > psz_filename && *psz != '.' )
         psz--;
@@ -675,6 +686,11 @@ static void parse_qpfile( cli_opt_t *opt, x264_picture_t *pic, int i_frame )
  * Decode:
  *****************************************************************************/
 
+/*
+Encode_frame
+这个函数将输入每帧的YUV数据，然后输出nal包。编码码流的具体工作交由API x264_encoder_encode
+*/
+
 static int  Encode_frame( x264_t *h, hnd_t hout, x264_picture_t *pic )
 {
     x264_picture_t pic_out;
@@ -682,7 +698,7 @@ static int  Encode_frame( x264_t *h, hnd_t hout, x264_picture_t *pic )
     int i_nal, i;
     int i_file = 0;
 
-    if( x264_encoder_encode( h, &nal, &i_nal, pic, &pic_out ) < 0 )
+    if( x264_encoder_encode( h, &nal, &i_nal, pic, &pic_out ) < 0 )//264_encoder_encode每次会以参数送入一帧待编码的帧pic_in
     {
         fprintf( stderr, "x264 [error]: x264_encoder_encode failed\n" );
     }
@@ -692,10 +708,12 @@ static int  Encode_frame( x264_t *h, hnd_t hout, x264_picture_t *pic )
         int i_size;
         int i_data;
 
-        i_data = DATA_MAX;
-        if( ( i_size = x264_nal_encode( data, &i_data, 1, &nal[i] ) ) > 0 )
+        i_data = DATA_MAX;//右边这个是3百万，本文件最上面给了
+		//网络打包编码
+        if( ( i_size = x264_nal_encode( data, &i_data, 1, &nal[i] ) ) > 0 )//第一个参数是一个全局变量，是个数组
         {
-            i_file += p_write_nalu( hout, data, i_size );
+			//把网络包写入到输出文件中去//这儿换成通过套接字发送
+            i_file += p_write_nalu( hout, data, i_size );//这个是函数指针的形式，//p_write_nalu = write_nalu_mp4;p_write_nalu = write_nalu_mkv;p_write_nalu = write_nalu_bsf;
         }
         else if( i_size < 0 )
         {
@@ -709,115 +727,118 @@ static int  Encode_frame( x264_t *h, hnd_t hout, x264_picture_t *pic )
 }
 
 /*****************************************************************************
- * Encode:
+ * Encode: 编码
+ * 这个函数执行完，全部编码工作就结束了
  *****************************************************************************/
 static int  Encode( x264_param_t *param, cli_opt_t *opt )
 {
-    x264_t *h;
-    x264_picture_t pic;
+    x264_t *h;	//定义一个结构体的指针
+    x264_picture_t pic;//这是一个结构体的对象，所以已经分配了内存空间，不用再动态分配了，本结构体里有一个数组，是用来存图像的，但它只是存的指针，所以后面还得分配实际存图像的内存，然后用这个数组记下这块内存的地址
 
-    int     i_frame, i_frame_total;
-    int64_t i_start, i_end;
-    int64_t i_file;
-    int     i_frame_size;
-    int     i_progress;
+    int     i_frame, i_frame_total;//x264_param_t结构的字段里也有个i_frame_total字段，默认值为0
+    int64_t i_start, i_end;	//从i_start开始编码，直到i_end结束
+    int64_t i_file;//好像是计数编码过的长度的
+    int     i_frame_size;//后面有一句，是用编码一帧的返回值赋值的
+    int     i_progress;//记录进度
 
-    i_frame_total = p_get_frame_total( opt->hin );
-    i_frame_total -= opt->i_seek;
-    if( ( i_frame_total == 0 || param->i_frame_total < i_frame_total )
-        && param->i_frame_total > 0 )
-        i_frame_total = param->i_frame_total;
-    param->i_frame_total = i_frame_total;
+    i_frame_total = p_get_frame_total( opt->hin );	/* 得到输入文件的总帧数 由于p_get_frame_total = get_frame_total_yuv（见Parse（）函数），所以调用函数int get_frame_total_yuv( hnd_t handle )，在文件muxers.c中*/
+    i_frame_total -= opt->i_seek;	/* 要编码的总帧数= 源文件总帧数-开始帧(不一定从第1帧开始编码) */
+    if( ( i_frame_total == 0 || param->i_frame_total < i_frame_total ) && param->i_frame_total > 0 )	/* 对这个待编码的总帧数进行一些判断 */
+        i_frame_total = param->i_frame_total;	/* 保证i_frame_total是有效的 */
+    param->i_frame_total = i_frame_total;	/* 获取要求编码的帧数param->i_frame_total 根据命令行输入参数计算得到的总帧数，存进结构体的字段*/
 
-    if( ( h = x264_encoder_open( param ) ) == NULL )
+    if( ( h = x264_encoder_open( param ) ) == NULL )	/* 在文件encoder.c中，创建编码器，并对不正确的264_t结构体(h的类型是264_t * )参数进行修改，并对各结构体参数、编码、预测等需要的参数进行初始化 */
     {
-        fprintf( stderr, "x264 [error]: x264_encoder_open failed\n" );
-        p_close_infile( opt->hin );
-        p_close_outfile( opt->hout );
+        fprintf( stderr, "x264 [error]: x264_encoder_open failed\n" );	/* 打印错误信息 */
+        p_close_infile( opt->hin );	/* 关闭输入文件 */
+        p_close_outfile( opt->hout );	/* 关闭输出文件 */
+        return -1;//程序结束
+    }
+
+    if( p_set_outfile_param( opt->hout, param ) )	/* 设置输出文件格式 */
+    {
+        fprintf( stderr, "x264 [error]: can't set outfile param\n" );//输出：不能设置输出文件参数
+        p_close_infile( opt->hin );	/* 关闭YUV文件 关闭输入文件 */
+        p_close_outfile( opt->hout );	/* 关闭码流文件 关闭输出文件 */
         return -1;
     }
 
-    if( p_set_outfile_param( opt->hout, param ) )
+    /* 创建一帧图像空间 Create a new pic (这个图像分配好的内存首地址等填充到了pic结构)*/
+    x264_picture_alloc( &pic, X264_CSP_I420, param->i_width, param->i_height );	/* #define X264_CSP_I420  0x0001  yuv 4:2:0 planar */ 
+
+    i_start = x264_mdate();	/* 返回当前日期，开始和结束时间求差，可以计算总的耗时和每秒的效率 return the current date in microsecond */
+
+    /* (循环编码每一帧) Encode frames */
+    for( i_frame = 0, i_file = 0, i_progress = 0; b_ctrl_c == 0 && (i_frame < i_frame_total || i_frame_total == 0); )
     {
-        fprintf( stderr, "x264 [error]: can't set outfile param\n" );
-        p_close_infile( opt->hin );
-        p_close_outfile( opt->hout );
-        return -1;
-    }
-
-    /* Create a new pic */
-    x264_picture_alloc( &pic, X264_CSP_I420, param->i_width, param->i_height );
-
-    i_start = x264_mdate();
-
-    /* Encode frames */
-    for( i_frame = 0, i_file = 0, i_progress = 0;
-         b_ctrl_c == 0 && (i_frame < i_frame_total || i_frame_total == 0); )
-    {
-        if( p_read_frame( &pic, opt->hin, i_frame + opt->i_seek ) )
+        if( p_read_frame( &pic, opt->hin, i_frame + opt->i_seek ) )/*读取一帧，并把这帧设为prev; 读入第i_frame帧，从起始帧算，而不是视频的第0帧 */
             break;
 
-        pic.i_pts = (int64_t)i_frame * param->i_fps_den;
-
-        if( opt->qpfile )
-            parse_qpfile( opt, &pic, i_frame + opt->i_seek );
-        else
+        pic.i_pts = (int64_t)i_frame * param->i_fps_den; //字段：I_pts ：program time stamp 程序时间戳，指示这幅画面编码的时间戳
+														//帧率*帧数，好像也能算出时间戳来
+        if( opt->qpfile )//这儿可能是一个什么设置，或许是存在一个配置文件
+            parse_qpfile( opt, &pic, i_frame + opt->i_seek );//parse_qpfile() 为从指定的文件中读入qp的值留下的接口，qpfile为文件的首地址
+        else//没有配置的话，就全自动了，呵呵
         {
-            /* Do not force any parameters */
+            /* 未强制任何编码参数Do not force any parameters */
             pic.i_type = X264_TYPE_AUTO;
-            pic.i_qpplus1 = 0;
+            pic.i_qpplus1 = 0;//I_qpplus1 ：此参数减1代表当前画面的量化参数值
         }
 
-        i_file += Encode_frame( h, opt->hout, &pic );
+		/*编码一帧图像，h编码器句柄，hout码流文件，pic预编码帧图像，实际就是上面从视频文件中读到的东西*/
+        i_file += Encode_frame( h, opt->hout, &pic );//进入核心编码层
 
-        i_frame++;
+        i_frame++;//已编码的帧数统计(递增1)
 
-        /* update status line (up to 1000 times per input file) */
+        /* 更新数据行，用于显示整个编码过程的进度 update status line (up to 1000 times per input file) */
         if( opt->b_progress && param->i_log_level < X264_LOG_DEBUG && 
             ( i_frame_total ? i_frame * 1000 / i_frame_total > i_progress
                             : i_frame % 10 == 0 ) )
         {
-            int64_t i_elapsed = x264_mdate() - i_start;
+            int64_t i_elapsed = x264_mdate() - i_start;//elapsed:(时间)过去;开始至现在的时间差
             double fps = i_elapsed > 0 ? i_frame * 1000000. / i_elapsed : 0;
             if( i_frame_total )
             {
-                int eta = i_elapsed * (i_frame_total - i_frame) / ((int64_t)i_frame * 1000000);
+                int eta = i_elapsed * (i_frame_total - i_frame) / ((int64_t)i_frame * 1000000);//已用的时间*(总共要编码的帧数-已编码的帧数=待编码的帧数)/(已编码的帧数*1000000)，看上去就象是预计剩余时间，也就是估计的倒计时，根据过去的效率动态的估计这个时间
                 i_progress = i_frame * 1000 / i_frame_total;
-                fprintf( stderr, "encoded frames: %d/%d (%.1f%%), %.2f fps, eta %d:%02d:%02d  \r",
+                fprintf( stderr, "已编码的帧数:: %d/%d (%.1f%%), %.2f fps, eta %d:%02d:%02d  \r",	/* 状态提示 FPS（Frames Per Second）：每秒传输帧数,每秒钟填充图像的帧数（帧/秒)*/
                          i_frame, i_frame_total, (float)i_progress / 10, fps,
-                         eta/3600, (eta/60)%60, eta%60 );
+                         eta/3600, (eta/60)%60, eta%60 );//ETA是Estimated Time of Arrival的英文缩写，指 预计到达时间
             }
             else
-                fprintf( stderr, "encoded frames: %d, %.2f fps   \r", i_frame, fps );
+                fprintf( stderr, "已编码的帧数: %d, %.2f fps   \r", i_frame, fps );	/* 状态提示,共编码了... */
             fflush( stderr ); // needed in windows
-        }
+       }
     }
-    /* Flush delayed B-frames */
+
+    /* Flush delayed(延迟) B-frames */
     do {
         i_file +=
-        i_frame_size = Encode_frame( h, opt->hout, NULL );
+        i_frame_size = Encode_frame( h, opt->hout, NULL );//上面调用的是i_file += Encode_frame( h, opt->hout, &pic );
     } while( i_frame_size );
 
-    i_end = x264_mdate();
-    x264_picture_clean( &pic );
+    i_end = x264_mdate();		//返回当前时间return the current date in microsecond//前面有句： i_start = x264_mdate();
+    x264_picture_clean( &pic );	//
     x264_encoder_close( h );
     fprintf( stderr, "\n" );
 
     if( b_ctrl_c )
         fprintf( stderr, "aborted at input frame %d\n", opt->i_seek + i_frame );
 
-    p_close_infile( opt->hin );
-    p_close_outfile( opt->hout );
+    p_close_infile( opt->hin );		//关闭输入文件
+    p_close_outfile( opt->hout );	//关闭输出文件
 
     if( i_frame > 0 )
     {
         double fps = (double)i_frame * (double)1000000 /
-                     (double)( i_end - i_start );
+                     (double)( i_end - i_start );/* 每秒多少帧 */
 
         fprintf( stderr, "encoded %d frames, %.2f fps, %.2f kb/s\n", i_frame, fps,
                  (double) i_file * 8 * param->i_fps_num /
-                 ( (double) param->i_fps_den * i_frame * 1000 ) );
+                 ( (double) param->i_fps_den * i_frame * 1000 ) );	/* 在窗口显示encoded 26 frames等进度提示 */
     }
 
     return 0;
 }
+/*直接传输像素值是IPCM模式
+*/

@@ -226,6 +226,9 @@ static inline void mc_hc( uint8_t *src, int i_src_stride, uint8_t *dst, int i_ds
 static const int hpel_ref0[16] = {0,1,1,1,0,1,1,1,2,3,3,3,0,1,1,1};
 static const int hpel_ref1[16] = {0,0,0,0,2,2,3,2,2,2,3,2,2,2,3,2};
 
+/*
+亮度运动估计
+*/
 static void mc_luma( uint8_t *src[4], int i_src_stride,
                      uint8_t *dst,    int i_dst_stride,
                      int mvx,int mvy,
@@ -248,6 +251,10 @@ static void mc_luma( uint8_t *src[4], int i_src_stride,
     }
 }
 
+/*
+获取参考亮度像素
+
+*/
 static uint8_t *get_ref( uint8_t *src[4], int i_src_stride,
                          uint8_t *dst,    int * i_dst_stride,
                          int mvx,int mvy,
@@ -273,6 +280,9 @@ static uint8_t *get_ref( uint8_t *src[4], int i_src_stride,
     }
 }
 
+/*
+色度运动估计
+*/
 /* full chroma mc (ie until 1/8 pixel)*/
 static void motion_compensation_chroma( uint8_t *src, int i_src_stride,
                                         uint8_t *dst, int i_dst_stride,
@@ -316,6 +326,9 @@ MC_COPY( 16 )
 MC_COPY( 8 )
 MC_COPY( 4 )
 
+/*
+运动估计初始化
+*/
 void x264_mc_init( int cpu, x264_mc_functions_t *pf )
 {
     pf->mc_luma   = mc_luma;
@@ -372,6 +385,9 @@ extern void x264_center_filter_mmxext( uint8_t *dst1, int i_dst1_stride,
                                        uint8_t *src, int i_src_stride,
                                        int i_width, int i_height );
 
+/*
+帧滤波
+*/
 void x264_frame_filter( int cpu, x264_frame_t *frame )
 {
     const int x_inc = 16, y_inc = 16;
@@ -441,6 +457,9 @@ void x264_frame_filter( int cpu, x264_frame_t *frame )
     }
 }
 
+/*
+亮度1/2像素值初始化
+*/
 void x264_frame_init_lowres( int cpu, x264_frame_t *frame )
 {
     // FIXME: tapfilter?

@@ -379,7 +379,8 @@ getopt_long(nargc, nargv, options, long_options, idx)
 	_DIAGASSERT(long_options != NULL);
 	/* idx may be NULL */
 
-	if ((retval = getopt_internal(nargc, nargv, options)) == -2) {
+	if ((retval = getopt_internal(nargc, nargv, options)) == -2) //internal:ÄÚ²¿µÄ
+	{
 		char *current_argv, *has_equal;
 		size_t current_argv_len;
 		int i, match;

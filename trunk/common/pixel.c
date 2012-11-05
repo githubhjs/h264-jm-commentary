@@ -98,6 +98,10 @@ PIXEL_SSD_C( x264_pixel_ssd_8x4,    8,  4 )
 PIXEL_SSD_C( x264_pixel_ssd_4x8,    4,  8 )
 PIXEL_SSD_C( x264_pixel_ssd_4x4,    4,  4 )
 
+/*
+计算像素差值平方和
+
+*/
 int64_t x264_pixel_ssd_wxh( x264_pixel_function_t *pf, uint8_t *pix1, int i_pix1, uint8_t *pix2, int i_pix2, int i_width, int i_height )
 {
     int64_t i_ssd = 0;
@@ -135,7 +139,10 @@ int64_t x264_pixel_ssd_wxh( x264_pixel_function_t *pf, uint8_t *pix1, int i_pix1
     return i_ssd;
 }
 
+/*
+计算像素差
 
+*/
 static inline void pixel_sub_wxh( int16_t *diff, int i_size,
                                   uint8_t *pix1, int i_pix1, uint8_t *pix2, int i_pix2 )
 {
@@ -151,9 +158,13 @@ static inline void pixel_sub_wxh( int16_t *diff, int i_size,
     }
 }
 
+/*
 
+*/
 /****************************************************************************
  * pixel_satd_WxH: sum of 4x4 Hadamard transformed differences
+ 计算4*4hardmard变换后的绝对误差和
+
  ****************************************************************************/
 static int pixel_satd_wxh( uint8_t *pix1, int i_pix1, uint8_t *pix2, int i_pix2, int i_width, int i_height )
 {
@@ -218,6 +229,8 @@ PIXEL_SATD_C( x264_pixel_satd_4x4,   4, 4 )
 
 /****************************************************************************
  * pixel_sa8d_WxH: sum of 8x8 Hadamard transformed differences
+ 计算8*8hardmard变换后的绝对误差和
+
  ****************************************************************************/
 #define SA8D_1D {\
     const int a0 = SRC(0) + SRC(4);\
@@ -246,6 +259,9 @@ PIXEL_SATD_C( x264_pixel_satd_4x4,   4, 4 )
     DST(7, b6 - b7);\
 }
 
+/*
+
+*/
 static inline int pixel_sa8d_wxh( uint8_t *pix1, int i_pix1, uint8_t *pix2, int i_pix2,
                                   int i_width, int i_height )
 {

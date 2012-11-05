@@ -378,7 +378,7 @@ void x264_slicetype_decide( x264_t *h )
         /* Use the frame types from the first pass */
         for( i = 0; h->frames.next[i] != NULL; i++ )
             h->frames.next[i]->i_type =
-                x264_ratecontrol_slice_type( h, h->frames.next[i]->i_frame );
+                x264_ratecontrol_slice_type( h, h->frames.next[i]->i_frame );//调用x264_ratecontrol_slice_type，依据码率控制逐个求出next列表中所有帧的类型
     }
     else if( h->param.i_bframe && h->param.b_bframe_adaptive )
         x264_slicetype_analyse( h );

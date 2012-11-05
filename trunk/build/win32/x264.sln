@@ -1,35 +1,33 @@
-Microsoft Visual Studio Solution File, Format Version 8.00
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libx264", "libx264.vcproj", "{A8D6E4CD-1885-4B03-8E41-5F3DB825BAA6}"
-	ProjectSection(ProjectDependencies) = postProject
-	EndProjectSection
+Microsoft Visual Studio Solution File, Format Version 9.00
+# Visual C++ Express 2005
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libx264", "libx264.vcproj", "{B58DFFEC-45AB-412D-9B49-52360BAE4779}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "x264", "x264.vcproj", "{22E1814D-7955-4456-AEA5-0C9BA7500792}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "x264", "x264.vcproj", "{F8DB63D2-4B11-4E24-887C-6FE911CEDD17}"
 	ProjectSection(ProjectDependencies) = postProject
-		{A8D6E4CD-1885-4B03-8E41-5F3DB825BAA6} = {A8D6E4CD-1885-4B03-8E41-5F3DB825BAA6}
+		{B58DFFEC-45AB-412D-9B49-52360BAE4779} = {B58DFFEC-45AB-412D-9B49-52360BAE4779}
 	EndProjectSection
 EndProject
 Global
-	GlobalSection(SolutionConfiguration) = preSolution
-		Debug = Debug
-		Release = Release
-		Release64 = Release64
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+		Release64|Win32 = Release64|Win32
 	EndGlobalSection
-	GlobalSection(ProjectConfiguration) = postSolution
-		{22E1814D-7955-4456-AEA5-0C9BA7500792}.Debug.ActiveCfg = Debug|Win32
-		{22E1814D-7955-4456-AEA5-0C9BA7500792}.Debug.Build.0 = Debug|Win32
-		{22E1814D-7955-4456-AEA5-0C9BA7500792}.Release.ActiveCfg = Release|Win32
-		{22E1814D-7955-4456-AEA5-0C9BA7500792}.Release.Build.0 = Release|Win32
-		{22E1814D-7955-4456-AEA5-0C9BA7500792}.Release64.ActiveCfg = Release64|Win32
-		{22E1814D-7955-4456-AEA5-0C9BA7500792}.Release64.Build.0 = Release64|Win32
-		{A8D6E4CD-1885-4B03-8E41-5F3DB825BAA6}.Debug.ActiveCfg = Debug|Win32
-		{A8D6E4CD-1885-4B03-8E41-5F3DB825BAA6}.Debug.Build.0 = Debug|Win32
-		{A8D6E4CD-1885-4B03-8E41-5F3DB825BAA6}.Release.ActiveCfg = Release|Win32
-		{A8D6E4CD-1885-4B03-8E41-5F3DB825BAA6}.Release.Build.0 = Release|Win32
-		{A8D6E4CD-1885-4B03-8E41-5F3DB825BAA6}.Release64.ActiveCfg = Release64|Win32
-		{A8D6E4CD-1885-4B03-8E41-5F3DB825BAA6}.Release64.Build.0 = Release64|Win32
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B58DFFEC-45AB-412D-9B49-52360BAE4779}.Debug|Win32.ActiveCfg = Debug|Win32
+		{B58DFFEC-45AB-412D-9B49-52360BAE4779}.Debug|Win32.Build.0 = Debug|Win32
+		{B58DFFEC-45AB-412D-9B49-52360BAE4779}.Release|Win32.ActiveCfg = Release|Win32
+		{B58DFFEC-45AB-412D-9B49-52360BAE4779}.Release|Win32.Build.0 = Release|Win32
+		{B58DFFEC-45AB-412D-9B49-52360BAE4779}.Release64|Win32.ActiveCfg = Release64|Win32
+		{B58DFFEC-45AB-412D-9B49-52360BAE4779}.Release64|Win32.Build.0 = Release64|Win32
+		{F8DB63D2-4B11-4E24-887C-6FE911CEDD17}.Debug|Win32.ActiveCfg = Debug|Win32
+		{F8DB63D2-4B11-4E24-887C-6FE911CEDD17}.Debug|Win32.Build.0 = Debug|Win32
+		{F8DB63D2-4B11-4E24-887C-6FE911CEDD17}.Release|Win32.ActiveCfg = Release|Win32
+		{F8DB63D2-4B11-4E24-887C-6FE911CEDD17}.Release|Win32.Build.0 = Release|Win32
+		{F8DB63D2-4B11-4E24-887C-6FE911CEDD17}.Release64|Win32.ActiveCfg = Release|Win32
+		{F8DB63D2-4B11-4E24-887C-6FE911CEDD17}.Release64|Win32.Build.0 = Release|Win32
 	EndGlobalSection
-	GlobalSection(ExtensibilityGlobals) = postSolution
-	EndGlobalSection
-	GlobalSection(ExtensibilityAddIns) = postSolution
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
 	EndGlobalSection
 EndGlobal
